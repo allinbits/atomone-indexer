@@ -1,0 +1,42 @@
+table:
+  name: validator
+  schema: public
+object_relationships:
+  - name: validator_info
+    using:
+      foreign_key_constraint_on:
+        column: consensus_address
+        table:
+          name: validator_info
+          schema: public
+array_relationships:
+  - name: blocks
+    using:
+      foreign_key_constraint_on:
+        column: proposer_address
+        table:
+          name: block
+          schema: public
+  - name: proposal_validator_status_snapshots
+    using:
+      foreign_key_constraint_on:
+        column: validator_address
+        table:
+          name: proposal_validator_status_snapshot
+          schema: public
+  - name: staked_balances
+    using:
+      foreign_key_constraint_on:
+        column: validator
+        table:
+          name: staked_balances
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - consensus_address
+        - consensus_pubkey
+      filter: {}
+      allow_aggregations: true
+    comment: ""

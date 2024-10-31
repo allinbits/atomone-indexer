@@ -1,0 +1,24 @@
+table:
+  name: staked_balances
+  schema: public
+object_relationships:
+  - name: account
+    using:
+      foreign_key_constraint_on: delegator
+  - name: block
+    using:
+      foreign_key_constraint_on: height
+  - name: validatorByValidator
+    using:
+      foreign_key_constraint_on: validator
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - delegator
+        - validator
+        - amount
+      filter: {}
+      allow_aggregations: true
+    comment: ""

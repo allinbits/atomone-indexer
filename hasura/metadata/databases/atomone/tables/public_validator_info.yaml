@@ -1,0 +1,55 @@
+table:
+  name: validator_info
+  schema: public
+object_relationships:
+  - name: account
+    using:
+      foreign_key_constraint_on: self_delegate_address
+  - name: block
+    using:
+      foreign_key_constraint_on: height
+  - name: validator
+    using:
+      foreign_key_constraint_on: consensus_address
+array_relationships:
+  - name: validator_commissions
+    using:
+      foreign_key_constraint_on:
+        column: validator_address
+        table:
+          name: validator_commission
+          schema: public
+  - name: validator_descriptions
+    using:
+      foreign_key_constraint_on:
+        column: validator_address
+        table:
+          name: validator_description
+          schema: public
+  - name: validator_statuses
+    using:
+      foreign_key_constraint_on:
+        column: validator_address
+        table:
+          name: validator_status
+          schema: public
+  - name: validator_voting_powers
+    using:
+      foreign_key_constraint_on:
+        column: validator_address
+        table:
+          name: validator_voting_power
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - consensus_address
+        - max_change_rate
+        - max_rate
+        - operator_address
+        - self_delegate_address
+      filter: {}
+      allow_aggregations: true
+    comment: ""

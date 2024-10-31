@@ -1,0 +1,25 @@
+table:
+  name: validator_description
+  schema: public
+object_relationships:
+  - name: block
+    using:
+      foreign_key_constraint_on: height
+  - name: validator_info
+    using:
+      foreign_key_constraint_on: validator_address
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - avatar_url
+        - details
+        - identity
+        - moniker
+        - security_contact
+        - validator_address
+        - website
+      filter: {}
+      allow_aggregations: true
+    comment: ""

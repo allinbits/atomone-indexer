@@ -1,0 +1,88 @@
+table:
+  name: proposal
+  schema: public
+object_relationships:
+  - name: account
+    using:
+      foreign_key_constraint_on: proposer_address
+array_relationships:
+  - name: proposal_deposits
+    using:
+      foreign_key_constraint_on:
+        column: proposal_id
+        table:
+          name: proposal_deposit
+          schema: public
+  - name: proposal_staking_pool_snapshots
+    using:
+      foreign_key_constraint_on:
+        column: proposal_id
+        table:
+          name: proposal_staking_pool_snapshot
+          schema: public
+  - name: proposal_tally_results
+    using:
+      foreign_key_constraint_on:
+        column: proposal_id
+        table:
+          name: proposal_tally_result
+          schema: public
+  - name: proposal_validator_status_snapshots
+    using:
+      foreign_key_constraint_on:
+        column: proposal_id
+        table:
+          name: proposal_validator_status_snapshot
+          schema: public
+  - name: proposal_votes
+    using:
+      foreign_key_constraint_on:
+        column: proposal_id
+        table:
+          name: proposal_vote
+          schema: public
+computed_fields:
+  - name: active_first_order
+    definition:
+      function:
+        name: active_first
+        schema: public
+  - name: failed_first_order
+    definition:
+      function:
+        name: failed_first
+        schema: public
+  - name: passed_first_order
+    definition:
+      function:
+        name: passed_first
+        schema: public
+  - name: rejected_first_order
+    definition:
+      function:
+        name: rejected_first
+        schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - id
+        - content
+        - description
+        - proposal_route
+        - proposal_type
+        - proposer_address
+        - status
+        - title
+        - deposit_end_time
+        - submit_time
+        - voting_end_time
+        - voting_start_time
+      computed_fields:
+        - active_first_order
+        - failed_first_order
+        - passed_first_order
+        - rejected_first_order
+      filter: {}
+      allow_aggregations: true
+    comment: ""

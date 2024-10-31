@@ -1,0 +1,112 @@
+table:
+  name: block
+  schema: public
+object_relationships:
+  - name: validator
+    using:
+      foreign_key_constraint_on: proposer_address
+array_relationships:
+  - name: balances
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: balances
+          schema: public
+  - name: gov_params
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: gov_params
+          schema: public
+  - name: proposal_deposits
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: proposal_deposit
+          schema: public
+  - name: proposal_tally_results
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: proposal_tally_result
+          schema: public
+  - name: proposal_votes
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: proposal_vote
+          schema: public
+  - name: staked_balances
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: staked_balances
+          schema: public
+  - name: supplies
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: supply
+          schema: public
+  - name: transactions
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: transaction
+          schema: public
+  - name: validator_commissions
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: validator_commission
+          schema: public
+  - name: validator_descriptions
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: validator_description
+          schema: public
+  - name: validator_infos
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: validator_info
+          schema: public
+  - name: validator_statuses
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: validator_status
+          schema: public
+  - name: validator_voting_powers
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: validator_voting_power
+          schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - total_gas
+        - num_txs
+        - hash
+        - proposer_address
+        - timestamp
+      filter: {}
+      allow_aggregations: true
+    comment: ""

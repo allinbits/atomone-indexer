@@ -1,0 +1,25 @@
+table:
+  name: proposal_deposit
+  schema: public
+object_relationships:
+  - name: account
+    using:
+      foreign_key_constraint_on: depositor_address
+  - name: block
+    using:
+      foreign_key_constraint_on: height
+  - name: proposal
+    using:
+      foreign_key_constraint_on: proposal_id
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - amount
+        - height
+        - proposal_id
+        - depositor_address
+        - timestamp
+      filter: {}
+      allow_aggregations: true
+    comment: ""

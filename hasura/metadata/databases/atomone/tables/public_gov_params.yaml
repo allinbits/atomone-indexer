@@ -1,0 +1,18 @@
+table:
+  name: gov_params
+  schema: public
+object_relationships:
+  - name: block
+    using:
+      foreign_key_constraint_on: height
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - deposit_params
+        - tally_params
+        - voting_params
+      filter: {}
+      allow_aggregations: true
+    comment: ""
