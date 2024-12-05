@@ -36,12 +36,12 @@ import {
 } from "./queries";
 
 export type Events = {
-  "/govgen.gov.v1beta1.MsgSubmitProposal": {
+  "/atomone.gov.v1beta1.MsgSubmitProposal": {
     value: Types.TxResult<Uint8Array>;
   };
-  "/govgen.gov.v1beta1.MsgVote": { value: Types.TxResult<Uint8Array> };
-  "/govgen.gov.v1beta1.MsgDeposit": { value: Types.TxResult<Uint8Array> };
-  "/govgen.gov.v1beta1.MsgVoteWeighted": { value: Types.TxResult<Uint8Array> };
+  "/atomone.gov.v1beta1.MsgVote": { value: Types.TxResult<Uint8Array> };
+  "/atomone.gov.v1beta1.MsgDeposit": { value: Types.TxResult<Uint8Array> };
+  "/atomone.gov.v1beta1.MsgVoteWeighted": { value: Types.TxResult<Uint8Array> };
   "genesis/value/app_state.gov": { value: unknown };
 };
 export const getProposalContent = (
@@ -53,7 +53,7 @@ export const getProposalContent = (
         return ParameterChangeProposal.decode((content as Any).value);
       case "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal":
         return SoftwareUpgradeProposal.decode((content as Any).value);
-      case "/govgen.gov.v1beta1.TextProposal":
+      case "/atomone.gov.v1beta1.TextProposal":
       default:
         return TextProposal.decode((content as Any).value);
     }
@@ -117,7 +117,7 @@ const setupDB = async () => {
 };
 export const init = async () => {
   await setupDB();
-  bus.on("/govgen.gov.v1beta1.MsgSubmitProposal", async (event) => {
+  bus.on("/atomone.gov.v1beta1.MsgSubmitProposal", async (event) => {
     try {
       log.verbose(
         "Value passed to gov indexing module: " + (event as any).value
@@ -136,7 +136,7 @@ export const init = async () => {
         });
         const propReq = QueryProposalRequest.encode(q).finish();
         const propResp = await Utils.callABCI(
-          "/govgen.gov.v1beta1.Query/Proposal",
+          "/atomone.gov.v1beta1.Query/Proposal",
           propReq,
           event.height
         );
@@ -164,7 +164,7 @@ export const init = async () => {
     }
   });
 
-  bus.on("/govgen.gov.v1beta1.MsgDeposit", async (event) => {
+  bus.on("/atomone.gov.v1beta1.MsgDeposit", async (event) => {
     try {
       log.verbose(
         "Value passed to gov indexing module: " + (event as any).value
@@ -190,7 +190,7 @@ export const init = async () => {
         });
         const prop = QueryProposalRequest.encode(q).finish();
         const propq = await Utils.callABCI(
-          "/govgen.gov.v1beta1.Query/Proposal",
+          "/atomone.gov.v1beta1.Query/Proposal",
           prop,
           event.height
         );
@@ -209,7 +209,7 @@ export const init = async () => {
     }
   });
 
-  bus.on("/govgen.gov.v1beta1.MsgVote", async (event) => {
+  bus.on("/atomone.gov.v1beta1.MsgVote", async (event) => {
     log.verbose("Value passed to gov indexing module: " + (event as any).value);
     const vote = MsgVote.decode(event.value.tx);
     await saveVotes(
@@ -224,7 +224,7 @@ export const init = async () => {
     }
   });
 
-  bus.on("/govgen.gov.v1beta1.MsgVoteWeighted", async (event) => {
+  bus.on("/atomone.gov.v1beta1.MsgVoteWeighted", async (event) => {
     log.verbose("Value passed to gov indexing module: " + (event as any).value);
     const vote = MsgVoteWeighted.decode(event.value.tx);
     await saveVotes(
@@ -300,7 +300,7 @@ export const init = async () => {
           });
           const tally = QueryTallyResultRequest.encode(q).finish();
           const tallyq = await Utils.callABCI(
-            "/govgen.gov.v1beta1.Query/TallyResult",
+            "/atomone.gov.v1beta1.Query/TallyResult",
             tally,
             event.height
           );
@@ -343,5 +343,5 @@ export const init = async () => {
 };
 
 export const depends = ["cosmos.auth.v1beta1", "cosmos.staking.v1beta1"];
-export const name = "govgen.gov.v1beta1";
+export const name = "atomone.gov.v1beta1";
 export const provides = [name, "cosmos.gov.v1beta1"];

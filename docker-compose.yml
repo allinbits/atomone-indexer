@@ -11,9 +11,9 @@ services:
       CHAIN_PREFIX: atone
     volumes:
       - ./genesis.json:/usr/src/app/genesis.json
-#    depends_on:
-#      postgres:
-#        condition: service_healthy
+    depends_on:
+      postgres:
+        condition: service_healthy
   postgres:
     image: postgres:15
     restart: always

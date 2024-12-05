@@ -31,13 +31,13 @@ const setupDB = async () => {
 
 - Create an `init()` method that sets up the db and sets up listeners by listening to events on `bus` obtained by `import { bus } from "../../bus";`
 
-- Standard events you can listen to are: `begin_block`, `end_block`, `tx_events`, `block` as well as individual messages by using the fully qualified message name: e.g. `/govgen.gov.v1beta1.MsgSubmitProposal`
+- Standard events you can listen to are: `begin_block`, `end_block`, `tx_events`, `block` as well as individual messages by using the fully qualified message name: e.g. `/atomone.gov.v1beta1.MsgSubmitProposal`
 
 - If listening for messages specific to this module that are not already handled, you have to create and export the appropriate Event for type-safety to work on the message bus e.g.:
 
 ```
 export type Events = {
-  "/govgen.gov.v1beta1.MsgSubmitProposal": { value: Uint8Array };
+  "/atomone.gov.v1beta1.MsgSubmitProposal": { value: Uint8Array };
 };
 ```
 
