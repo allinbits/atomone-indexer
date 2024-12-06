@@ -36,12 +36,19 @@ import {
 } from "./queries";
 
 export type Events = {
-  "/govgen.gov.v1beta1.MsgSubmitProposal": {
+  "/atomone.gov.v1beta1.MsgSubmitProposal": {
     value: Types.TxResult<Uint8Array>;
   };
-  "/govgen.gov.v1beta1.MsgVote": { value: Types.TxResult<Uint8Array> };
-  "/govgen.gov.v1beta1.MsgDeposit": { value: Types.TxResult<Uint8Array> };
-  "/govgen.gov.v1beta1.MsgVoteWeighted": { value: Types.TxResult<Uint8Array> };
+
+  "/atomone.gov.v1.MsgSubmitProposal": {
+    value: Types.TxResult<Uint8Array>;
+  };
+  "/atomone.gov.v1beta1.MsgVote": { value: Types.TxResult<Uint8Array> };
+  "/atomone.gov.v1beta1.MsgDeposit": { value: Types.TxResult<Uint8Array> };
+  "/atomone.gov.v1beta1.MsgVoteWeighted": { value: Types.TxResult<Uint8Array> };
+  "/atomone.gov.v1.MsgVote": { value: Types.TxResult<Uint8Array> };
+  "/atomone.gov.v1.MsgDeposit": { value: Types.TxResult<Uint8Array> };
+  "/atomone.gov.v1.MsgVoteWeighted": { value: Types.TxResult<Uint8Array> };
   "genesis/value/app_state.gov": { value: unknown };
 };
 export const getProposalContent = (
@@ -53,7 +60,7 @@ export const getProposalContent = (
         return ParameterChangeProposal.decode((content as Any).value);
       case "/cosmos.upgrade.v1beta1.SoftwareUpgradeProposal":
         return SoftwareUpgradeProposal.decode((content as Any).value);
-      case "/govgen.gov.v1beta1.TextProposal":
+      case "/atomone.gov.v1beta1.TextProposal":
       default:
         return TextProposal.decode((content as Any).value);
     }
@@ -117,7 +124,7 @@ const setupDB = async () => {
 };
 export const init = async () => {
   await setupDB();
-  bus.on("/govgen.gov.v1beta1.MsgSubmitProposal", async (event) => {
+  bus.on("/atomone.gov.v1beta1.MsgSubmitProposal", async (event) => {
     try {
       log.verbose(
         "Value passed to gov indexing module: " + (event as any).value
@@ -136,7 +143,7 @@ export const init = async () => {
         });
         const propReq = QueryProposalRequest.encode(q).finish();
         const propResp = await Utils.callABCI(
-          "/govgen.gov.v1beta1.Query/Proposal",
+          "/atomone.gov.v1beta1.Query/Proposal",
           propReq,
           event.height
         );
@@ -164,7 +171,53 @@ export const init = async () => {
     }
   });
 
-  bus.on("/govgen.gov.v1beta1.MsgDeposit", async (event) => {
+  bus.on("/atomone.gov.v1.MsgSubmitProposal", async (event) => {
+    try {
+      log.verbose(
+        "Value passed to gov indexing module: " + (event as any).value
+      );
+      const prop = MsgSubmitProposal.decode(event.value.tx);
+
+      const content = prop.content ? getProposalContent(prop.content) : {};
+
+      const proposalId =
+        event.value.events
+          .find((x) => x.type == "submit_proposal")
+          ?.attributes.find((x) => x.key == "proposal_id")?.value ?? 0;
+      if (proposalId != 0) {
+        const q = QueryProposalRequest.fromPartial({
+          proposalId: BigInt(proposalId),
+        });
+        const propReq = QueryProposalRequest.encode(q).finish();
+        const propResp = await Utils.callABCI(
+          "/atomone.gov.v1beta1.Query/Proposal",
+          propReq,
+          event.height
+        );
+
+        const proposal = QueryProposalResponse.decode(propResp).proposal;
+        if (proposal) {
+          await saveProposal(proposal, prop.proposer, content);
+          await saveDeposit(
+            proposal.proposalId,
+            prop.proposer,
+            prop.initialDeposit,
+            event.timestamp ?? "",
+            event.height
+          );
+        }
+      }
+
+      if (event.uuid) {
+        bus.emit("uuid", { status: true, uuid: event.uuid });
+      }
+    } catch (_e) {
+      if (event.uuid) {
+        bus.emit("uuid", { status: false, uuid: event.uuid });
+      }
+    }
+  });
+  bus.on("/atomone.gov.v1beta1.MsgDeposit", async (event) => {
     try {
       log.verbose(
         "Value passed to gov indexing module: " + (event as any).value
@@ -190,7 +243,7 @@ export const init = async () => {
         });
         const prop = QueryProposalRequest.encode(q).finish();
         const propq = await Utils.callABCI(
-          "/govgen.gov.v1beta1.Query/Proposal",
+          "/atomone.gov.v1beta1.Query/Proposal",
           prop,
           event.height
         );
@@ -209,7 +262,51 @@ export const init = async () => {
     }
   });
 
-  bus.on("/govgen.gov.v1beta1.MsgVote", async (event) => {
+  bus.on("/atomone.gov.v1.MsgDeposit", async (event) => {
+    try {
+      log.verbose(
+        "Value passed to gov indexing module: " + (event as any).value
+      );
+      const deposit = MsgDeposit.decode(event.value.tx);
+      await saveDeposit(
+        deposit.proposalId,
+        deposit.depositor,
+        deposit.amount,
+        event.timestamp ?? "",
+        event.height
+      );
+
+      if (
+        event.value.events
+          .find((x) => x.type == "proposal_deposit")
+          ?.attributes.find((x) => x.key == "voting_period_start")?.value ==
+        deposit.proposalId.toString()
+      ) {
+        log.log("Updating proposal: " + deposit.proposalId);
+        const q = QueryProposalRequest.fromPartial({
+          proposalId: deposit.proposalId,
+        });
+        const prop = QueryProposalRequest.encode(q).finish();
+        const propq = await Utils.callABCI(
+          "/atomone.gov.v1beta1.Query/Proposal",
+          prop,
+          event.height
+        );
+        const proposal = QueryProposalResponse.decode(propq).proposal;
+        if (proposal) {
+          await updateProposal(proposal);
+        }
+      }
+      if (event.uuid) {
+        bus.emit("uuid", { status: true, uuid: event.uuid });
+      }
+    } catch (_e) {
+      if (event.uuid) {
+        bus.emit("uuid", { status: false, uuid: event.uuid });
+      }
+    }
+  });
+  bus.on("/atomone.gov.v1beta1.MsgVote", async (event) => {
     log.verbose("Value passed to gov indexing module: " + (event as any).value);
     const vote = MsgVote.decode(event.value.tx);
     await saveVotes(
@@ -224,7 +321,35 @@ export const init = async () => {
     }
   });
 
-  bus.on("/govgen.gov.v1beta1.MsgVoteWeighted", async (event) => {
+  bus.on("/atomone.gov.v1.MsgVote", async (event) => {
+    log.verbose("Value passed to gov indexing module: " + (event as any).value);
+    const vote = MsgVote.decode(event.value.tx);
+    await saveVotes(
+      vote.proposalId,
+      vote.voter,
+      [{ option: vote.option, weight: Math.pow(10, 18).toString() }],
+      event.timestamp ?? "",
+      event.height
+    );
+    if (event.uuid) {
+      bus.emit("uuid", { status: true, uuid: event.uuid });
+    }
+  });
+  bus.on("/atomone.gov.v1beta1.MsgVoteWeighted", async (event) => {
+    log.verbose("Value passed to gov indexing module: " + (event as any).value);
+    const vote = MsgVoteWeighted.decode(event.value.tx);
+    await saveVotes(
+      vote.proposalId,
+      vote.voter,
+      vote.options,
+      event.timestamp ?? "",
+      event.height
+    );
+    if (event.uuid) {
+      bus.emit("uuid", { status: true, uuid: event.uuid });
+    }
+  });
+  bus.on("/atomone.gov.v1.MsgVoteWeighted", async (event) => {
     log.verbose("Value passed to gov indexing module: " + (event as any).value);
     const vote = MsgVoteWeighted.decode(event.value.tx);
     await saveVotes(
@@ -300,7 +425,7 @@ export const init = async () => {
           });
           const tally = QueryTallyResultRequest.encode(q).finish();
           const tallyq = await Utils.callABCI(
-            "/govgen.gov.v1beta1.Query/TallyResult",
+            "/atomone.gov.v1beta1.Query/TallyResult",
             tally,
             event.height
           );
@@ -343,5 +468,5 @@ export const init = async () => {
 };
 
 export const depends = ["cosmos.auth.v1beta1", "cosmos.staking.v1beta1"];
-export const name = "govgen.gov.v1beta1";
+export const name = "atomone.gov.v1beta1";
 export const provides = [name, "cosmos.gov.v1beta1"];

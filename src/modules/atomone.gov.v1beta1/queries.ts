@@ -18,8 +18,6 @@ import { SoftwareUpgradeProposal } from "@atomone/atomone-types/cosmos/upgrade/v
 import { fromSeconds, toRfc3339WithNanoseconds } from "@cosmjs/tendermint-rpc";
 import { DB, Utils } from "@eclesia/indexer";
 
-import { getProposalContent } from ".";
-
 const saveProposal = async (
   prop: Proposal,
   proposer: string,
@@ -30,7 +28,6 @@ const saveProposal = async (
     | { title?: string; description?: string }
 ) => {
   const db = DB.getInstance();
-
   await db.query(
     "INSERT INTO proposal(id,title,description,content,proposal_route,proposal_type,submit_time,deposit_end_time,voting_start_time,voting_end_time,proposer_address,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
     [
@@ -39,7 +36,7 @@ const saveProposal = async (
       content.description ?? "",
       content,
       "",
-      prop.content ? getProposalContent(prop.content) : {},
+      prop.content?.typeUrl,
       fromSeconds(
         Number(prop.submitTime?.seconds ?? 0),
         prop.submitTime?.nanos ?? 0
@@ -60,6 +57,7 @@ const saveProposal = async (
       proposalStatusToJSON(prop.status),
     ]
   );
+
 };
 const updateProposal = async (prop: Proposal) => {
   const db = DB.getInstance();
