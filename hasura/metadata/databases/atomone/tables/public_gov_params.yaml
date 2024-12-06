@@ -10,9 +10,7 @@ select_permissions:
     permission:
       columns:
         - height
-        - deposit_params
-        - tally_params
-        - voting_params
+        - params
       filter: {}
       allow_aggregations: true
     comment: ""
