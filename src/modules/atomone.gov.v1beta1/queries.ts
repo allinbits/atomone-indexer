@@ -27,7 +27,7 @@ const saveProposal = async (
     | SoftwareUpgradeProposal
     | { title?: string; description?: string }
 ) => {
-  const db = DB.getInstance();
+  const db = DB.getInstance();  
   await db.query(
     "INSERT INTO proposal(id,title,description,content,proposal_route,proposal_type,submit_time,deposit_end_time,voting_start_time,voting_end_time,proposer_address,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
     [
