@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable max-lines-per-function */
 import fs from "node:fs";
@@ -19,6 +20,12 @@ import {
   MsgVote,
   MsgVoteWeighted,
 } from "@atomone/atomone-types/atomone/gov/v1beta1/tx";
+import {
+  MsgDeposit as MsgDepositV1,
+  MsgSubmitProposal as MsgSubmitProposalV1,
+  MsgVote as MsgVoteV1,
+  MsgVoteWeighted as MsgVoteWeightedV1,
+} from "@atomone/atomone-types/atomone/gov/v1beta1/tx";
 import { ParameterChangeProposal } from "@atomone/atomone-types/cosmos/params/v1beta1/params";
 import { SoftwareUpgradeProposal } from "@atomone/atomone-types/cosmos/upgrade/v1beta1/upgrade";
 import { Any } from "@atomone/atomone-types/google/protobuf/any";
@@ -34,6 +41,7 @@ import {
   updateProposal,
   updateProposalStatus,
 } from "./queries";
+
 
 export type Events = {
   "/atomone.gov.v1beta1.MsgSubmitProposal": {
@@ -68,7 +76,13 @@ export const getProposalContent = (
     return content;
   }
 };
-
+const consolidateEvents = (type:string, events: any[]) => {
+  return {
+    type,
+    attributes: events
+    .filter((x) => x.type == type).map(x => x.attributes).flat()
+  }
+}
 const migrate = async () => {
   const client = await DB.getInstance();
   try {
@@ -132,11 +146,10 @@ export const init = async () => {
       const prop = MsgSubmitProposal.decode(event.value.tx);
 
       const content = prop.content ? getProposalContent(prop.content) : {};
-
-      const proposalId =
-        event.value.events
-          .find((x) => x.type == "submit_proposal")
-          ?.attributes.find((x) => x.key == "proposal_id")?.value ?? 0;
+     
+      const submitProposalEvents = consolidateEvents("submit_proposal", event.value.events);
+      const proposalId = submitProposalEvents.attributes.find((x) => x.key == "proposal_id")?.value ?? 0;
+      
       if (proposalId != 0) {
         const q = QueryProposalRequest.fromPartial({
           proposalId: BigInt(proposalId),
@@ -145,8 +158,8 @@ export const init = async () => {
         const propResp = await Utils.callABCI(
           "/atomone.gov.v1beta1.Query/Proposal",
           propReq,
-          event.height
-        );
+          event.height  ?  event.height+1 : event.height
+        );       
 
         const proposal = QueryProposalResponse.decode(propResp).proposal;
         if (proposal) {
@@ -176,14 +189,12 @@ export const init = async () => {
       log.verbose(
         "Value passed to gov indexing module: " + (event as any).value
       );
-      const prop = MsgSubmitProposal.decode(event.value.tx);
+      const prop = MsgSubmitProposalV1.decode(event.value.tx);
 
       const content = prop.content ? getProposalContent(prop.content) : {};
-
-      const proposalId =
-        event.value.events
-          .find((x) => x.type == "submit_proposal")
-          ?.attributes.find((x) => x.key == "proposal_id")?.value ?? 0;
+      
+      const submitProposalEvents = consolidateEvents("submit_proposal", event.value.events);
+      const proposalId = submitProposalEvents.attributes.find((x) => x.key == "proposal_id")?.value ?? 0;
       if (proposalId != 0) {
         const q = QueryProposalRequest.fromPartial({
           proposalId: BigInt(proposalId),
@@ -230,11 +241,8 @@ export const init = async () => {
         event.timestamp ?? "",
         event.height
       );
-
-      if (
-        event.value.events
-          .find((x) => x.type == "proposal_deposit")
-          ?.attributes.find((x) => x.key == "voting_period_start")?.value ==
+      const proposalDepositEvents = consolidateEvents("proposal_deposit", event.value.events);
+      if (proposalDepositEvents.attributes.find((x) => x.key == "voting_period_start")?.value ==
         deposit.proposalId.toString()
       ) {
         log.log("Updating proposal: " + deposit.proposalId);
@@ -267,7 +275,7 @@ export const init = async () => {
       log.verbose(
         "Value passed to gov indexing module: " + (event as any).value
       );
-      const deposit = MsgDeposit.decode(event.value.tx);
+      const deposit = MsgDepositV1.decode(event.value.tx);
       await saveDeposit(
         deposit.proposalId,
         deposit.depositor,
@@ -276,10 +284,8 @@ export const init = async () => {
         event.height
       );
 
-      if (
-        event.value.events
-          .find((x) => x.type == "proposal_deposit")
-          ?.attributes.find((x) => x.key == "voting_period_start")?.value ==
+      const proposalDepositEvents = consolidateEvents("proposal_deposit", event.value.events);
+      if (proposalDepositEvents.attributes.find((x) => x.key == "voting_period_start")?.value ==
         deposit.proposalId.toString()
       ) {
         log.log("Updating proposal: " + deposit.proposalId);
@@ -323,7 +329,7 @@ export const init = async () => {
 
   bus.on("/atomone.gov.v1.MsgVote", async (event) => {
     log.verbose("Value passed to gov indexing module: " + (event as any).value);
-    const vote = MsgVote.decode(event.value.tx);
+    const vote = MsgVoteV1.decode(event.value.tx);
     await saveVotes(
       vote.proposalId,
       vote.voter,
@@ -351,7 +357,7 @@ export const init = async () => {
   });
   bus.on("/atomone.gov.v1.MsgVoteWeighted", async (event) => {
     log.verbose("Value passed to gov indexing module: " + (event as any).value);
-    const vote = MsgVoteWeighted.decode(event.value.tx);
+    const vote = MsgVoteWeightedV1.decode(event.value.tx);
     await saveVotes(
       vote.proposalId,
       vote.voter,
@@ -368,6 +374,7 @@ export const init = async () => {
     const prop_events = events.filter(
       (x) => x.type == "active_proposal" || x.type == "inactive_proposal"
     );
+    
     prop_events.forEach((x) => {
       const type = x.type;
       if (Utils.decodeAttr(x.attributes[0].key) == "proposal_id") {
