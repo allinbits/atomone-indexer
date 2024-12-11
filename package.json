@@ -20,7 +20,7 @@
     "@cosmjs/proto-signing": "^0.32.4",
     "@cosmjs/stargate": "^0.32.4",
     "@cosmjs/tendermint-rpc": "^0.32.4",
-    "@eclesia/indexer": "^1.2.2",
+    "@eclesia/indexer": "^1.2.3",
     "@types/json-bigint": "^1.0.4",
     "@types/node": "^22.7.5",
     "@types/pg": "^8.11.10",
