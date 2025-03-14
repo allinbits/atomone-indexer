@@ -18,8 +18,8 @@ importers:
         specifier: ^0.32.4
         version: 0.32.4
       '@eclesia/indexer':
-        specifier: ^1.2.3
-        version: 1.2.3
+        specifier: ^1.2.5
+        version: 1.2.5
       '@types/json-bigint':
         specifier: ^1.0.4
         version: 1.0.4
@@ -108,8 +108,8 @@ packages:
   '@cosmjs/utils@0.32.4':
     resolution: {integrity: sha512-D1Yc+Zy8oL/hkUkFUL/bwxvuDBzRGpc4cF7/SkdhxX4iHpSLgdOuTt1mhCh9+kl6NQREy9t7SYZ6xeW5gFe60w==}
 
-  '@eclesia/indexer@1.2.3':
-    resolution: {integrity: sha512-LhrY5JREQESaibzV0QGw/35gpMRypssFR5cTzQGC1CRX32+Or/4yfEv0Rj1aLGa8zj1sXdpOKFD33h4LsuSVEQ==}
+  '@eclesia/indexer@1.2.5':
+    resolution: {integrity: sha512-TmeGGgQzsLjbqcVSn0w76aOk1rDwtewBFsBGTjwp/JHjKf2IfsqQ5qMIQui3AO7GVURkWVnEDdqoM17NqlZFZg==}
     hasBin: true
 
   '@eclesia/sdk-modules@1.2.2':
@@ -1337,7 +1337,7 @@ snapshots:
 
   '@cosmjs/utils@0.32.4': {}
 
-  '@eclesia/indexer@1.2.3':
+  '@eclesia/indexer@1.2.5':
     dependencies:
       '@cosmjs/tendermint-rpc': 0.32.4
       bech32: 2.0.0
