@@ -102,7 +102,7 @@ const saveProposalV1 = async (
     ]
   );
 };
-const updateProposal = async (prop: Proposal) => {
+const updateProposal = async (prop: ProposalV1) => {
   const db = DB.getInstance();
 
   await db.query(
@@ -127,7 +127,7 @@ const updateProposal = async (prop: Proposal) => {
         )
       ),
       proposalStatusToJSON(prop.status),
-      prop.proposalId.toString(),
+      prop.id.toString(),
     ]
   );
 };

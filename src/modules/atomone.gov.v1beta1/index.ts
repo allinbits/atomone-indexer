@@ -250,16 +250,16 @@ export const init = async () => {
         deposit.proposalId.toString()
       ) {
         log.log("Updating proposal: " + deposit.proposalId);
-        const q = QueryProposalRequest.fromPartial({
+        const q = QueryProposalRequestV1.fromPartial({
           proposalId: deposit.proposalId,
         });
-        const prop = QueryProposalRequest.encode(q).finish();
+        const prop = QueryProposalRequestV1.encode(q).finish();
         const propq = await Utils.callABCI(
-          "/atomone.gov.v1beta1.Query/Proposal",
+          "/atomone.gov.v1.Query/Proposal",
           prop,
           event.height
         );
-        const proposal = QueryProposalResponse.decode(propq).proposal;
+        const proposal = QueryProposalResponseV1.decode(propq).proposal;
         if (proposal) {
           await updateProposal(proposal);
         }
@@ -293,16 +293,16 @@ export const init = async () => {
         deposit.proposalId.toString()
       ) {
         log.log("Updating proposal: " + deposit.proposalId);
-        const q = QueryProposalRequest.fromPartial({
+        const q = QueryProposalRequestV1.fromPartial({
           proposalId: deposit.proposalId,
         });
-        const prop = QueryProposalRequest.encode(q).finish();
+        const prop = QueryProposalRequestV1.encode(q).finish();
         const propq = await Utils.callABCI(
-          "/atomone.gov.v1beta1.Query/Proposal",
+          "/atomone.gov.v1.Query/Proposal",
           prop,
           event.height
         );
-        const proposal = QueryProposalResponse.decode(propq).proposal;
+        const proposal = QueryProposalResponseV1.decode(propq).proposal;
         if (proposal) {
           await updateProposal(proposal);
         }
