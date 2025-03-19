@@ -5,6 +5,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  QueryProposalRequest as QueryProposalRequestV1,
+  QueryProposalResponse as QueryProposalResponseV1
+} from "@atomone/atomone-types/atomone/gov/v1/query";
+import {
   ProposalStatus,
   TextProposal,
 } from "@atomone/atomone-types/atomone/gov/v1beta1/gov";
@@ -35,6 +39,7 @@ import {
   deleteProposal,
   saveDeposit,
   saveProposal,
+  saveProposalV1,
   saveTally,
   saveVotes,
   updatePoolAndStatus,
@@ -196,21 +201,20 @@ export const init = async () => {
       const submitProposalEvents = consolidateEvents("submit_proposal", event.value.events);
       const proposalId = submitProposalEvents.attributes.find((x) => x.key == "proposal_id")?.value ?? 0;
       if (proposalId != 0) {
-        const q = QueryProposalRequest.fromPartial({
+        const q = QueryProposalRequestV1.fromPartial({
           proposalId: BigInt(proposalId),
         });
-        const propReq = QueryProposalRequest.encode(q).finish();
+        const propReq = QueryProposalRequestV1.encode(q).finish();
         const propResp = await Utils.callABCI(
-          "/atomone.gov.v1beta1.Query/Proposal",
+          "/atomone.gov.v1.Query/Proposal",
           propReq,
-          event.height
+          event.height  ?  event.height+1 : event.height
         );
-
-        const proposal = QueryProposalResponse.decode(propResp).proposal;
+        const proposal = QueryProposalResponseV1.decode(propResp).proposal;
         if (proposal) {
-          await saveProposal(proposal, prop.proposer, content);
+          await saveProposalV1(proposal, prop.proposer, content);
           await saveDeposit(
-            proposal.proposalId,
+            proposal.id,
             prop.proposer,
             prop.initialDeposit,
             event.timestamp ?? "",

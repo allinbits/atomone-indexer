@@ -1,4 +1,7 @@
 import {
+  Proposal as ProposalV1
+} from "@atomone/atomone-types/atomone/gov/v1/gov";
+import {
   Proposal,
   ProposalStatus,
   proposalStatusToJSON,
@@ -58,6 +61,46 @@ const saveProposal = async (
     ]
   );
 
+};
+const saveProposalV1 = async (
+  prop: ProposalV1,
+  proposer: string,
+  content:
+    | TextProposal
+    | ParameterChangeProposal
+    | SoftwareUpgradeProposal
+    | { title?: string; description?: string }
+) => {
+  const db = DB.getInstance();  
+  await db.query(
+    "INSERT INTO proposal(id,title,description,content,proposal_route,proposal_type,submit_time,deposit_end_time,voting_start_time,voting_end_time,proposer_address,status) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)",
+    [
+      prop.id.toString(),
+      prop.title ?? "",
+      prop.summary ?? "",
+      content,
+      "",
+      prop.messages[0]?.typeUrl ?? "",
+      fromSeconds(
+        Number(prop.submitTime?.seconds ?? 0),
+        prop.submitTime?.nanos ?? 0
+      ),
+      fromSeconds(
+        Number(prop.depositEndTime?.seconds ?? 0),
+        prop.depositEndTime?.nanos ?? 0
+      ),
+      fromSeconds(
+        Number(prop.votingStartTime?.seconds ?? 0),
+        prop.votingStartTime?.nanos ?? 0
+      ),
+      fromSeconds(
+        Number(prop.votingEndTime?.seconds ?? 0),
+        prop.votingEndTime?.nanos ?? 0
+      ),
+      proposer,
+      proposalStatusToJSON(prop.status),
+    ]
+  );
 };
 const updateProposal = async (prop: Proposal) => {
   const db = DB.getInstance();
@@ -221,6 +264,7 @@ export {
   saveDeposit,
   savePoolSnapshot,
   saveProposal,
+  saveProposalV1,
   saveTally,
   saveVote,
   saveVotes,
