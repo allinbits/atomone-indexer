@@ -33,7 +33,6 @@ import {
 import { ParameterChangeProposal } from "@atomone/atomone-types/cosmos/params/v1beta1/params";
 import { SoftwareUpgradeProposal } from "@atomone/atomone-types/cosmos/upgrade/v1beta1/upgrade";
 import { Any } from "@atomone/atomone-types/google/protobuf/any";
-import { bus, DB, log, Types, Utils } from "@eclesia/indexer";
 
 import {
   deleteProposal,
@@ -46,8 +45,18 @@ import {
   updateProposal,
   updateProposalStatus,
 } from "./queries";
+import { IndexingModule } from "@clockwork-projects/indexer-engine/dist/types";
+import { EcleciaIndexer } from "@clockwork-projects/indexer-engine";
 
-
+export class GovModule implements IndexingModule{
+  indexer: EcleciaIndexer;
+  name: string;
+  depends: string[];
+  provides: string[];
+  setup: () => Promise<void>;
+  init: (...args: any[]) => void;
+  
+}
 export type Events = {
   "/atomone.gov.v1beta1.MsgSubmitProposal": {
     value: Types.TxResult<Uint8Array>;
