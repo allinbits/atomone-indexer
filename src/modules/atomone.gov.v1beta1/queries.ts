@@ -65,11 +65,7 @@ const saveProposal = async (
 const saveProposalV1 = async (
   prop: ProposalV1,
   proposer: string,
-  content:
-    | TextProposal
-    | ParameterChangeProposal
-    | SoftwareUpgradeProposal
-    | { title?: string; description?: string }
+  content: string
 ) => {
   const db = DB.getInstance();  
   await db.query(

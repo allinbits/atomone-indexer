@@ -9,6 +9,12 @@ import {
   QueryProposalResponse as QueryProposalResponseV1
 } from "@atomone/atomone-types/atomone/gov/v1/query";
 import {
+  MsgDeposit as MsgDepositV1,
+  MsgSubmitProposal as MsgSubmitProposalV1,
+  MsgVote as MsgVoteV1,
+  MsgVoteWeighted as MsgVoteWeightedV1,
+} from "@atomone/atomone-types/atomone/gov/v1/tx";
+import {
   ProposalStatus,
   TextProposal,
 } from "@atomone/atomone-types/atomone/gov/v1beta1/gov";
@@ -24,16 +30,12 @@ import {
   MsgVote,
   MsgVoteWeighted,
 } from "@atomone/atomone-types/atomone/gov/v1beta1/tx";
-import {
-  MsgDeposit as MsgDepositV1,
-  MsgSubmitProposal as MsgSubmitProposalV1,
-  MsgVote as MsgVoteV1,
-  MsgVoteWeighted as MsgVoteWeightedV1,
-} from "@atomone/atomone-types/atomone/gov/v1beta1/tx";
 import { ParameterChangeProposal } from "@atomone/atomone-types/cosmos/params/v1beta1/params";
 import { SoftwareUpgradeProposal } from "@atomone/atomone-types/cosmos/upgrade/v1beta1/upgrade";
 import { Any } from "@atomone/atomone-types/google/protobuf/any";
+import { GeneratedType } from "@cosmjs/proto-signing";
 import { bus, DB, log, Types, Utils } from "@eclesia/indexer";
+import JSONbig from "json-bigint";
 
 import {
   deleteProposal,
@@ -141,8 +143,13 @@ const setupDB = async () => {
     throw new Error("Could not migrate module: " + name);
   }
 };
-export const init = async () => {
+export const init = async (registry: [string, GeneratedType][]) => {
   await setupDB();
+
+  const registryMap: Map<string, (typeof registry)[0][1]> = new Map();
+  for (let i = 0; i < registry.length; i++) {
+    registryMap.set(registry[i][0], registry[i][1]);
+  }
   bus.on("/atomone.gov.v1beta1.MsgSubmitProposal", async (event) => {
     try {
       log.verbose(
@@ -163,7 +170,7 @@ export const init = async () => {
         const propResp = await Utils.callABCI(
           "/atomone.gov.v1beta1.Query/Proposal",
           propReq,
-          event.height  ?  event.height+1 : event.height
+          event.height
         );       
 
         const proposal = QueryProposalResponse.decode(propResp).proposal;
@@ -176,14 +183,19 @@ export const init = async () => {
             event.timestamp ?? "",
             event.height
           );
+        }else{
+          throw new Error("Could not fetch proposal. Are you connected to an archive node?");
         }
+      }else{
+        throw new Error("Invalid Proposal ID in event log:" + proposalId);
       }
 
       if (event.uuid) {
         bus.emit("uuid", { status: true, uuid: event.uuid });
       }
-    } catch (_e) {
+    } catch (e) {
       if (event.uuid) {
+        log.error("Error in message handling: " + e);
         bus.emit("uuid", { status: false, uuid: event.uuid });
       }
     }
@@ -195,39 +207,59 @@ export const init = async () => {
         "Value passed to gov indexing module: " + (event as any).value
       );
       const prop = MsgSubmitProposalV1.decode(event.value.tx);
+      
+      const content = prop.messages.length>0 ? JSONbig.stringify(
+         prop.messages.map((x) => {
+            const msgtype = registryMap.get(x.typeUrl);
+            if (msgtype) {
+              const msg = msgtype?.decode(x.value);
+              msg["@type"] = x.typeUrl;
 
-      const content = prop.content ? getProposalContent(prop.content) : {};
+              return msg;
+            } else {
+              return x;
+            }
+          })
+        ) : "[]";
       
       const submitProposalEvents = consolidateEvents("submit_proposal", event.value.events);
       const proposalId = submitProposalEvents.attributes.find((x) => x.key == "proposal_id")?.value ?? 0;
+      
       if (proposalId != 0) {
-        const q = QueryProposalRequestV1.fromPartial({
-          proposalId: BigInt(proposalId),
+        
+       const q = QueryProposalRequestV1.fromPartial({
+          proposalId: proposalId,
         });
-        const propReq = QueryProposalRequestV1.encode(q).finish();
-        const propResp = await Utils.callABCI(
+        const propRes = QueryProposalRequestV1.encode(q).finish();
+        const propq = await Utils.callABCI(
           "/atomone.gov.v1.Query/Proposal",
-          propReq,
-          event.height  ?  event.height+1 : event.height
+          propRes,
+          event.height
         );
-        const proposal = QueryProposalResponseV1.decode(propResp).proposal;
+        const proposal = QueryProposalResponseV1.decode(propq).proposal;
+        
         if (proposal) {
-          await saveProposalV1(proposal, prop.proposer, content);
+          await saveProposalV1(proposal, proposal.proposer, content);
           await saveDeposit(
             proposal.id,
-            prop.proposer,
+            proposal.proposer,
             prop.initialDeposit,
             event.timestamp ?? "",
             event.height
           );
+        }else{
+          throw new Error("Could not fetch proposal. Are you connected to an archive node?");
         }
+      }else{
+        throw new Error("Invalid Proposal ID in event log:" + proposalId);
       }
 
       if (event.uuid) {
         bus.emit("uuid", { status: true, uuid: event.uuid });
       }
-    } catch (_e) {
+    } catch (e) {
       if (event.uuid) {
+        log.error("Error in message handling: " + e);
         bus.emit("uuid", { status: false, uuid: event.uuid });
       }
     }
@@ -262,6 +294,8 @@ export const init = async () => {
         const proposal = QueryProposalResponseV1.decode(propq).proposal;
         if (proposal) {
           await updateProposal(proposal);
+        }else{
+          throw new Error("Could not fetch proposal. Are you connected to an archive node?");
         }
       }
       if (event.uuid) {
@@ -305,6 +339,8 @@ export const init = async () => {
         const proposal = QueryProposalResponseV1.decode(propq).proposal;
         if (proposal) {
           await updateProposal(proposal);
+        }else{
+          throw new Error("Could not fetch proposal. Are you connected to an archive node?");
         }
       }
       if (event.uuid) {

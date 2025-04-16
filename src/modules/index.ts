@@ -38,7 +38,7 @@ export const init = async () => {
     await Auth.init();
     await Bank.init();
     await Staking.init();
-    await Gov.init();
+    await Gov.init(registry);
     await DB.endTransaction(true);
     initialized = true;
   }
