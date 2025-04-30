@@ -40,8 +40,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2
       '@eclesia/sdk-modules':
-        specifier: ^1.2.18
-        version: 1.2.18
+        specifier: ^1.2.19
+        version: 1.2.19
       '@eslint/js':
         specifier: ^9.12.0
         version: 9.12.0
@@ -112,8 +112,8 @@ packages:
     resolution: {integrity: sha512-Zq0g6GaNOIREIu9xt/gKkOAPDiueFCZxWaNPfqo77xVZx+sPfnxEu/JCGRT+w+TNCSbESSdpiBmbBWIUxCa32A==}
     hasBin: true
 
-  '@eclesia/sdk-modules@1.2.18':
-    resolution: {integrity: sha512-bgdxJO2AraPH5wZcdFznfU2/6sZPnDYCyupKAO5gQ15//27LOys4VwZ+ggq2olb0py4GxSnqepsNwCobbBIsMw==}
+  '@eclesia/sdk-modules@1.2.19':
+    resolution: {integrity: sha512-MCBXqTo+j0wMnrIqFPY1Ld5PuuoKOwxtHZMeWfVreVuCY48i3VZzPD8wVafn62ymr5nPqx+5l7k+31FYPL3Gfw==}
     hasBin: true
 
   '@eslint-community/eslint-utils@4.4.0':
@@ -1357,7 +1357,7 @@ snapshots:
       - pg-native
       - utf-8-validate
 
-  '@eclesia/sdk-modules@1.2.18':
+  '@eclesia/sdk-modules@1.2.19':
     dependencies:
       '@cosmjs/proto-signing': 0.32.4
       '@cosmjs/tendermint-rpc': 0.32.4
