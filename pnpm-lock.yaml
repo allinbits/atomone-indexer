@@ -18,8 +18,8 @@ importers:
         specifier: ^0.32.4
         version: 0.32.4
       '@eclesia/indexer':
-        specifier: ^1.2.17
-        version: 1.2.17
+        specifier: ^1.2.19
+        version: 1.2.19
       '@types/json-bigint':
         specifier: ^1.0.4
         version: 1.0.4
@@ -37,8 +37,8 @@ importers:
         version: 8.13.0
     devDependencies:
       '@atomone/atomone-types':
-        specifier: ^1.0.2
-        version: 1.0.2
+        specifier: ^1.0.3
+        version: 1.0.3
       '@eclesia/sdk-modules':
         specifier: ^1.2.19
         version: 1.2.19
@@ -69,8 +69,8 @@ importers:
 
 packages:
 
-  '@atomone/atomone-types@1.0.2':
-    resolution: {integrity: sha512-nQ44Bi/ZMsX0gKZ5rjd+LoDVuql++UDN3ygLU24chhVaBndCutxKiSInhi8PJthPt+HosFHfsPAsthhk35UwpQ==}
+  '@atomone/atomone-types@1.0.3':
+    resolution: {integrity: sha512-ictgTV2o9JvmJ2NIy19xNDsG9ff8HtYwPYbH0x19LYkLdIH0wrrEzYzlvq388rnK49Vt0PSl18btJXk8i2gyJw==}
 
   '@confio/ics23@0.6.8':
     resolution: {integrity: sha512-wB6uo+3A50m0sW/EWcU64xpV/8wShZ6bMTa7pF8eYsTrSkQA7oLUIJcs/wb8g4y2Oyq701BaGiO6n/ak5WXO1w==}
@@ -108,8 +108,8 @@ packages:
   '@cosmjs/utils@0.32.4':
     resolution: {integrity: sha512-D1Yc+Zy8oL/hkUkFUL/bwxvuDBzRGpc4cF7/SkdhxX4iHpSLgdOuTt1mhCh9+kl6NQREy9t7SYZ6xeW5gFe60w==}
 
-  '@eclesia/indexer@1.2.17':
-    resolution: {integrity: sha512-Zq0g6GaNOIREIu9xt/gKkOAPDiueFCZxWaNPfqo77xVZx+sPfnxEu/JCGRT+w+TNCSbESSdpiBmbBWIUxCa32A==}
+  '@eclesia/indexer@1.2.19':
+    resolution: {integrity: sha512-iILFBzPcHkkzbFso5B0TVHmUCLNV+2EYEDAyHDVR3R7TlGDdngNjYfEj3a3iuKWuYLIpePmV/RMPQyR7q1I4fw==}
     hasBin: true
 
   '@eclesia/sdk-modules@1.2.19':
@@ -1239,7 +1239,7 @@ packages:
 
 snapshots:
 
-  '@atomone/atomone-types@1.0.2': {}
+  '@atomone/atomone-types@1.0.3': {}
 
   '@confio/ics23@0.6.8':
     dependencies:
@@ -1337,7 +1337,7 @@ snapshots:
 
   '@cosmjs/utils@0.32.4': {}
 
-  '@eclesia/indexer@1.2.17':
+  '@eclesia/indexer@1.2.19':
     dependencies:
       '@cosmjs/tendermint-rpc': 0.32.4
       bech32: 2.0.0
