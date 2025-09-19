@@ -1,11 +1,11 @@
 CREATE TABLE gov_params
 (    
     params JSONB   NOT NULL,
-    height         BIGINT   REFERENCES block (height)
+    height         BIGINT   REFERENCES blocks (height)
 );
 CREATE INDEX gov_params_height_index ON gov_params (height);
 
-CREATE TABLE proposal
+CREATE TABLE proposals
 (
     id                INTEGER   NOT NULL PRIMARY KEY,
     title             TEXT      NOT NULL,
@@ -17,73 +17,73 @@ CREATE TABLE proposal
     deposit_end_time  TIMESTAMP,
     voting_start_time TIMESTAMP,
     voting_end_time   TIMESTAMP,
-    proposer_address  TEXT      NOT NULL REFERENCES account (address),
+    proposer_address  TEXT      NOT NULL REFERENCES accounts (address),
     status            TEXT
 );
-CREATE INDEX proposal_proposer_address_index ON proposal (proposer_address);
+CREATE INDEX proposal_proposer_address_index ON proposals (proposer_address);
 
-CREATE TABLE proposal_deposit
+CREATE TABLE proposal_deposits
 (
-    proposal_id       INTEGER NOT NULL REFERENCES proposal (id),
-    depositor_address TEXT             REFERENCES account (address),
+    proposal_id       INTEGER NOT NULL REFERENCES proposals (id),
+    depositor_address TEXT             REFERENCES accounts (address),
     amount            COIN[],
     timestamp         TIMESTAMP,
-    height            BIGINT  REFERENCES block (height)
+    height            BIGINT  REFERENCES blocks (height)
 );
-CREATE INDEX proposal_deposit_proposal_id_index ON proposal_deposit (proposal_id);
-CREATE INDEX proposal_deposit_depositor_address_index ON proposal_deposit (depositor_address);
-CREATE INDEX proposal_deposit_depositor_height_index ON proposal_deposit (height);
+CREATE INDEX proposal_deposit_proposal_id_index ON proposal_deposits (proposal_id);
+CREATE INDEX proposal_deposit_depositor_address_index ON proposal_deposits (depositor_address);
+CREATE INDEX proposal_deposit_depositor_height_index ON proposal_deposits (height);
 
-CREATE TABLE proposal_vote
+CREATE TABLE proposal_votes
 (
-    proposal_id   INTEGER NOT NULL REFERENCES proposal (id),
-    voter_address TEXT    NOT NULL REFERENCES account (address),
+    proposal_id   INTEGER NOT NULL REFERENCES proposals (id),
+    voter_address TEXT    NOT NULL REFERENCES accounts (address),
     is_valid         BOOLEAN NOT NULL,
     option        TEXT    NOT NULL,
     weight        TEXT    NOT NULL,
     timestamp     TIMESTAMP,
-    height        BIGINT  REFERENCES block (height)
+    height        BIGINT  REFERENCES blocks (height)
 );
-CREATE INDEX proposal_vote_proposal_id_index ON proposal_vote (proposal_id);
-CREATE INDEX proposal_vote_voter_address_index ON proposal_vote (voter_address);
-CREATE INDEX proposal_vote_height_index ON proposal_vote (height);
+CREATE INDEX proposal_vote_proposal_id_index ON proposal_votes (proposal_id);
+CREATE INDEX proposal_vote_voter_address_index ON proposal_votes (voter_address);
+CREATE INDEX proposal_vote_height_index ON proposal_votes (height);
 
-CREATE TABLE proposal_tally_result
+CREATE TABLE proposal_tally_results
 (
-    proposal_id  INTEGER REFERENCES proposal (id),
+    proposal_id  INTEGER REFERENCES proposals (id),
     yes          TEXT NOT NULL,
     abstain      TEXT NOT NULL,
     no           TEXT NOT NULL,
     no_with_veto TEXT NOT NULL,
-    height       BIGINT REFERENCES block (height),
+    height       BIGINT REFERENCES blocks (height),
     CONSTRAINT unique_tally UNIQUE (proposal_id, yes,abstain,no, no_with_veto)
 );
-CREATE INDEX proposal_tally_result_proposal_id_index ON proposal_tally_result (proposal_id);
-CREATE INDEX proposal_tally_result_height_index ON proposal_tally_result (height);
+CREATE INDEX proposal_tally_result_proposal_id_index ON proposal_tally_results (proposal_id);
+CREATE INDEX proposal_tally_result_height_index ON proposal_tally_results (height);
 
-CREATE TABLE proposal_staking_pool_snapshot
+CREATE TABLE proposal_staking_pool_snapshots
 (
-    proposal_id       INTEGER REFERENCES proposal (id),
+    proposal_id       INTEGER REFERENCES proposals (id),
     bonded_tokens     TEXT   NOT NULL,
     not_bonded_tokens TEXT   NOT NULL,
-    height            BIGINT NOT NULL
+    height            BIGINT REFERENCES blocks (height)
 );
-CREATE INDEX proposal_staking_pool_snapshot_proposal_id_index ON proposal_staking_pool_snapshot (proposal_id);
+CREATE INDEX proposal_staking_pool_snapshot_proposal_id_index ON proposal_staking_pool_snapshots (proposal_id);
 
-CREATE TABLE proposal_validator_status_snapshot
+CREATE TABLE proposal_validator_status_snapshots
 (
     id                SERIAL PRIMARY KEY NOT NULL,
-    proposal_id       INTEGER REFERENCES proposal (id),
-    validator_address TEXT               NOT NULL REFERENCES validator (consensus_address),
+    proposal_id       INTEGER REFERENCES proposals (id),
+    validator_address TEXT               NOT NULL REFERENCES validators (consensus_address),
     voting_power      BIGINT             NOT NULL,
     status            INT                NOT NULL,
     jailed            BOOLEAN            NOT NULL,
-    height            BIGINT             NOT NULL
+    height            BIGINT REFERENCES blocks (height)
 );
-CREATE INDEX proposal_validator_status_snapshot_proposal_id_index ON proposal_validator_status_snapshot (proposal_id);
-CREATE INDEX proposal_validator_status_snapshot_validator_address_index ON proposal_validator_status_snapshot (validator_address);
+CREATE INDEX proposal_validator_status_snapshot_proposal_id_index ON proposal_validator_status_snapshots (proposal_id);
+CREATE INDEX proposal_validator_status_snapshot_validator_address_index ON proposal_validator_status_snapshots (validator_address);
 
-CREATE OR REPLACE FUNCTION public.active_first(proposal_row proposal)
+CREATE OR REPLACE FUNCTION public.active_first(proposal_row proposals)
  RETURNS integer
  LANGUAGE sql
  STABLE
@@ -99,7 +99,7 @@ ELSE 7
 END
 $function$
 ;
-CREATE OR REPLACE FUNCTION public.failed_first(proposal_row proposal)
+CREATE OR REPLACE FUNCTION public.failed_first(proposal_row proposals)
  RETURNS integer
  LANGUAGE sql
  STABLE
@@ -115,7 +115,7 @@ ELSE 7
 END
 $function$
 ;
-CREATE OR REPLACE FUNCTION public.passed_first(proposal_row proposal)
+CREATE OR REPLACE FUNCTION public.passed_first(proposal_row proposals)
  RETURNS integer
  LANGUAGE sql
  STABLE
@@ -131,7 +131,7 @@ ELSE 7
 END
 $function$
 ;
-CREATE OR REPLACE FUNCTION public.rejected_first(proposal_row proposal)
+CREATE OR REPLACE FUNCTION public.rejected_first(proposal_row proposals)
  RETURNS integer
  LANGUAGE sql
  STABLE

@@ -18,15 +18,15 @@ COPY . .
 # into this layer.
 RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,id=pnpm,target=/pnpm/store \
-    npm install -g pnpm typescript && \
-    pnpm install && \
+    CI=1 npm install -g pnpm typescript && \
+    CI=1 pnpm install && \
     pnpm build
 
 
 # Final image
 FROM node:20-alpine
 
-ENV LOG_LEVEL 3
+ENV LOG_LEVEL debug
 ENV CHAIN_PREFIX atone
 ENV QUEUE_SIZE 200
 ENV CHAIN_START_HEIGHT 1
@@ -36,8 +36,9 @@ ENV CHAIN_START_HEIGHT 1
 WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app/package.json /usr/src/app/package.json
+COPY --from=builder /usr/src/app/genesis.json /usr/src/app/genesis.json
 COPY --from=builder /usr/src/app/node_modules /usr/src/app/node_modules
 COPY --from=builder /usr/src/app/dist /usr/src/app/dist
 
-ENTRYPOINT ["node","dist/index.js" ]
+ENTRYPOINT ["node", "dist/index.js" ]
 CMD        [ "start" ]

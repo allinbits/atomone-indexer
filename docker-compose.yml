@@ -1,16 +1,21 @@
 services:
-  indexer:
+  indexernew:
+    ports:
+      - "8088:80"
+      - "7007:7000"
     build:
       context: .
+    entrypoint: ["node", "dist/index.js"]
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PG_CONNECTION_STRING: postgres://postgres:postgrespassword@postgres:5432/postgres
-      RPC_ENDPOINT: wss://atomone-testnet-1-rpc.allinbits.services
+      RPC_ENDPOINT: ws://192.168.10.158:26657
       CHAIN_START_HEIGHT: 1
-      LOG_LEVEL: 1
+      LOG_LEVEL: debug
       CHAIN_PREFIX: atone
-    volumes:
-      - ./genesis.json:/usr/src/app/genesis.json
+      QUEUE_SIZE: 100
+    #volumes:
+    #  - ./genesis.json:/usr/src/app/genesis.json
     depends_on:
       postgres:
         condition: service_healthy
@@ -21,6 +26,10 @@ services:
       - db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: postgrespassword
+    command: >
+      -c work_mem=512MB
+      -c maintenance_work_mem=512MB
+      -c max_wal_size=2GB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
