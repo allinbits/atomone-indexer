@@ -1,9 +1,19 @@
-import { atomoneProtoRegistry } from "@atomone/atomone-types/atomone/client.js";
-import { cosmosProtoRegistry } from "@atomone/atomone-types/cosmos/client.js";
-import { PgIndexer, PgIndexerConfig } from "@eclesia/basic-pg-indexer";
-import { AuthModule, BankModule, Blocks, StakingModule} from "@eclesia/core-modules-pg";
+import {
+  atomoneProtoRegistry,
+} from "@atomone/atomone-types/atomone/client.js";
+import {
+  cosmosProtoRegistry,
+} from "@atomone/atomone-types/cosmos/client.js";
+import {
+  PgIndexer, PgIndexerConfig,
+} from "@eclesia/basic-pg-indexer";
+import {
+  AuthModule, BankModule, Blocks, StakingModule,
+} from "@eclesia/core-modules-pg";
 
-import { GovModule } from "./modules/atomone.gov.v1beta1/index.js";
+import {
+  GovModule,
+} from "./modules/atomone.gov.v1beta1/index.js";
 
 const config: PgIndexerConfig = {
   startHeight: 1,
@@ -13,7 +23,7 @@ const config: PgIndexerConfig = {
   logLevel: process.env.LOG_LEVEL as PgIndexerConfig["logLevel"] ?? "info",
   usePolling: false,
   pollingInterval: 0,
-  processGenesis: false,
+  processGenesis: process.env.PROCESS_GENESIS === "true" || false,
   minimal: false,
   genesisPath: "./genesis.json",
   dbConnectionString: process.env.PG_CONNECTION_STRING || "postgres://postgres:password@localhost:5432/atomone",
@@ -25,10 +35,10 @@ const authModule = new AuthModule(registry);
 const bankModule = new BankModule(registry);
 const stakingModule = new StakingModule(registry);
 const govModule = new GovModule(registry);
-const indexer = new PgIndexer(config,[blocksModule, authModule, bankModule, stakingModule, govModule]);
+const indexer = new PgIndexer(config, [blocksModule, authModule, bankModule, stakingModule, govModule]);
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.log("Unhandled Rejection at:", promise, "reason:", reason);
   console.trace();
   process.exit(1);
 });
@@ -36,9 +46,10 @@ const run = async () => {
   try {
     await indexer.setup();
     await indexer.run();
-  } catch (error) { 
+  }
+  catch (error) {
     console.error("Error running indexer:", error);
     process.exit(1);
   }
-}
+};
 run();
