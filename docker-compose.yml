@@ -1,26 +1,44 @@
 services:
-  indexer:
+  indexernew:
+    ports:
+      - "8088:80"
+      - "7007:7000"
     build:
       context: .
+    entrypoint: ["node", "dist/index.js"]
     environment:
       NODE_ENV: production
       PG_CONNECTION_STRING: postgres://postgres:postgrespassword@postgres:5432/postgres
       RPC_ENDPOINT: wss://atomone-rpc.allinbits.com/websocket
       CHAIN_START_HEIGHT: 1
-      LOG_LEVEL: 1
+      LOG_LEVEL: debug
       CHAIN_PREFIX: atone
-    volumes:
-      - ./genesis.json:/usr/src/app/genesis.json
-    #depends_on:
-    #  postgres:
-    #    condition: service_healthy
+      PROCESS_GENESIS: false
+      QUEUE_SIZE: 200
+    #volumes:
+    #  - ./genesis.json:/usr/src/app/genesis.json
+    depends_on:
+      postgres:
+        condition: service_healthy
   postgres:
     image: postgres:15
     restart: always
     volumes:
       - db_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '3.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
     environment:
       POSTGRES_PASSWORD: postgrespassword
+    command: >
+      -c work_mem=2048MB
+      -c maintenance_work_mem=2048MB
+      -c max_wal_size=4GB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
