@@ -24,8 +24,8 @@ importers:
         specifier: ^2.8.0
         version: 2.8.0
       '@eclesia/core-modules-pg':
-        specifier: ^2.8.1
-        version: 2.8.1
+        specifier: ^2.8.4
+        version: 2.8.4
       '@eclesia/indexer-engine':
         specifier: ^2.8.2
         version: 2.8.2
@@ -155,8 +155,8 @@ packages:
   '@eclesia/basic-pg-indexer@2.8.0':
     resolution: {integrity: sha512-Sb5CE/TloFG5K9/f6b+AuVRZ/mo7V2/wY1podosGyu44XqngAKL2qiQfyr8Vs59BNTWpVreyHDMvYgSGG01oEQ==}
 
-  '@eclesia/core-modules-pg@2.8.1':
-    resolution: {integrity: sha512-z9HjQMdrCO+TK7z6+oAEjvcLCydDV5BvIkfoI4I+8Y7p+AkWiw6NAt92qE5r27s9/msbZH069jgPPKESAF6URA==}
+  '@eclesia/core-modules-pg@2.8.4':
+    resolution: {integrity: sha512-ns+51jSZeeXctxaDpeLc7F0AqqvfX97XoZiS5naUgMIADiCGaSavYZ0sV4k2F7Vk/wO/SOT3Dfp1WV/+llwaAA==}
 
   '@eclesia/indexer-engine@2.8.2':
     resolution: {integrity: sha512-k9wQDDdHGir8r49q8mt6/0WW0wPmLFfB9vQJpNQsppArLj3WwzIG8KPpyzsuwareR0kDYhRumlRnUq1HLNrtrQ==}
@@ -1622,7 +1622,7 @@ snapshots:
       - pg-native
       - utf-8-validate
 
-  '@eclesia/core-modules-pg@2.8.1':
+  '@eclesia/core-modules-pg@2.8.4':
     dependencies:
       '@cosmjs/encoding': 0.36.0
       '@cosmjs/proto-signing': 0.36.0

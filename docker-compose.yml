@@ -13,7 +13,7 @@ services:
       CHAIN_START_HEIGHT: 1
       LOG_LEVEL: info
       CHAIN_PREFIX: atone
-      PROCESS_GENESIS: "false"
+      PROCESS_GENESIS: false
       QUEUE_SIZE: 200
     #volumes:
     #  - ./genesis.json:/usr/src/app/genesis.json
