@@ -15,8 +15,8 @@ services:
       CHAIN_PREFIX: atone
       PROCESS_GENESIS: false
       QUEUE_SIZE: 200
-    #volumes:
-    #  - ./genesis.json:/usr/src/app/genesis.json
+    volumes:
+      - ./genesis.json:/usr/src/app/genesis.json
     depends_on:
       postgres:
         condition: service_healthy
