@@ -1,5 +1,5 @@
 table:
-  name: proposal
+  name: proposals
   schema: public
 object_relationships:
   - name: account
@@ -11,35 +11,35 @@ array_relationships:
       foreign_key_constraint_on:
         column: proposal_id
         table:
-          name: proposal_deposit
+          name: proposal_deposits
           schema: public
   - name: proposal_staking_pool_snapshots
     using:
       foreign_key_constraint_on:
         column: proposal_id
         table:
-          name: proposal_staking_pool_snapshot
+          name: proposal_staking_pool_snapshots
           schema: public
   - name: proposal_tally_results
     using:
       foreign_key_constraint_on:
         column: proposal_id
         table:
-          name: proposal_tally_result
+          name: proposal_tally_results
           schema: public
   - name: proposal_validator_status_snapshots
     using:
       foreign_key_constraint_on:
         column: proposal_id
         table:
-          name: proposal_validator_status_snapshot
+          name: proposal_validator_status_snapshots
           schema: public
   - name: proposal_votes
     using:
       foreign_key_constraint_on:
         column: proposal_id
         table:
-          name: proposal_vote
+          name: proposal_votes
           schema: public
 computed_fields:
   - name: active_first_order
@@ -62,27 +62,3 @@ computed_fields:
       function:
         name: rejected_first
         schema: public
-select_permissions:
-  - role: anonymous
-    permission:
-      columns:
-        - id
-        - content
-        - description
-        - proposal_route
-        - proposal_type
-        - proposer_address
-        - status
-        - title
-        - deposit_end_time
-        - submit_time
-        - voting_end_time
-        - voting_start_time
-      computed_fields:
-        - active_first_order
-        - failed_first_order
-        - passed_first_order
-        - rejected_first_order
-      filter: {}
-      allow_aggregations: true
-    comment: ""

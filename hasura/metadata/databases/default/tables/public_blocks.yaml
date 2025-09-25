@@ -1,5 +1,5 @@
 table:
-  name: block
+  name: blocks
   schema: public
 object_relationships:
   - name: validator
@@ -25,21 +25,35 @@ array_relationships:
       foreign_key_constraint_on:
         column: height
         table:
-          name: proposal_deposit
+          name: proposal_deposits
+          schema: public
+  - name: proposal_staking_pool_snapshots
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: proposal_staking_pool_snapshots
           schema: public
   - name: proposal_tally_results
     using:
       foreign_key_constraint_on:
         column: height
         table:
-          name: proposal_tally_result
+          name: proposal_tally_results
+          schema: public
+  - name: proposal_validator_status_snapshots
+    using:
+      foreign_key_constraint_on:
+        column: height
+        table:
+          name: proposal_validator_status_snapshots
           schema: public
   - name: proposal_votes
     using:
       foreign_key_constraint_on:
         column: height
         table:
-          name: proposal_vote
+          name: proposal_votes
           schema: public
   - name: staked_balances
     using:
@@ -60,28 +74,28 @@ array_relationships:
       foreign_key_constraint_on:
         column: height
         table:
-          name: transaction
+          name: transactions
           schema: public
   - name: validator_commissions
     using:
       foreign_key_constraint_on:
         column: height
         table:
-          name: validator_commission
+          name: validator_commissions
           schema: public
   - name: validator_descriptions
     using:
       foreign_key_constraint_on:
         column: height
         table:
-          name: validator_description
+          name: validator_descriptions
           schema: public
   - name: validator_infos
     using:
       foreign_key_constraint_on:
         column: height
         table:
-          name: validator_info
+          name: validator_infos
           schema: public
   - name: validator_statuses
     using:
@@ -95,18 +109,5 @@ array_relationships:
       foreign_key_constraint_on:
         column: height
         table:
-          name: validator_voting_power
+          name: validator_voting_powers
           schema: public
-select_permissions:
-  - role: anonymous
-    permission:
-      columns:
-        - height
-        - total_gas
-        - num_txs
-        - hash
-        - proposer_address
-        - timestamp
-      filter: {}
-      allow_aggregations: true
-    comment: ""

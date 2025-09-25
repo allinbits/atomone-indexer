@@ -4,7 +4,7 @@
       - name: AllVotes
         query: |
           query AllVotes ($proposalId: Int!, $limit: Int!, $offset: Int!) {
-            proposal_vote(limit: $limit, offset: $offset, where: {_and:{proposal_id:{_eq:$proposalId},is_valid:{_eq:true}}}, order_by: {height:desc,voter_address:desc}) {
+            proposal_votes(limit: $limit, offset: $offset, where: {_and:{proposal_id:{_eq:$proposalId},is_valid:{_eq:true}}}, order_by: {height:desc,voter_address:desc}) {
               height
               is_valid
               option
@@ -22,7 +22,7 @@
                 }
               }
             }
-            proposal_vote_aggregate(where: {_and:{proposal_id:{_eq:$proposalId},is_valid:{_eq:true}}}) {
+            proposal_votes_aggregate(where: {_and:{proposal_id:{_eq:$proposalId},is_valid:{_eq:true}}}) {
               aggregate {
                 count
               }
@@ -38,7 +38,7 @@
       - name: BlockHeight
         query: |
           query BlockHeight ($timestamp: timestamp!) {
-            block(where: {timestamp:{_gte:$timestamp}}, order_by: {height:asc}, limit: 1) {
+            blocks(where: {timestamp:{_gte:$timestamp}}, order_by: {height:asc}, limit: 1) {
               timestamp
               height
             }
@@ -46,7 +46,7 @@
       - name: BlockTime
         query: |
           query BlockTime ($height: bigint) {
-            block(where: {height:{_lte:$height}}, order_by: {height:desc}, limit: 1) {
+            blocks(where: {height:{_lte:$height}}, order_by: {height:desc}, limit: 1) {
               timestamp
               height
             }
@@ -69,7 +69,7 @@
       - name: Proposal
         query: |
           query Proposal ($id: Int!) {
-            proposal(where: {id:{_eq:$id}}) {
+            proposals(where: {id:{_eq:$id}}) {
               content
               deposit_end_time
               description
@@ -103,10 +103,165 @@
               }
             }
           }
+      - name: ProposalsActive
+        query: |
+          query ProposalsActive ($limit: Int!, $offset: Int!, $where: proposals_bool_exp = {}) {
+            all_proposals: proposals(order_by: [{active_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: $where) {
+              content
+              deposit_end_time
+              description
+              id
+              proposal_type
+              proposal_deposits {
+                amount
+                depositor_address
+              }
+              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
+                aggregate {
+                  count
+                }
+              }
+              proposer_address
+              status
+              submit_time
+              title
+              voting_end_time
+              voting_start_time
+            }
+            proposals_aggregate(where: $where) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: ProposalsFailed
+        query: |
+          query ProposalsFailed ($limit: Int!, $offset: Int!, $where: proposals_bool_exp = {}) {
+            all_proposals: proposals(order_by: [{failed_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: $where) {
+              content
+              deposit_end_time
+              description
+              id
+              proposal_type
+              proposal_deposits {
+                amount
+                depositor_address
+              }
+              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
+                aggregate {
+                  count
+                }
+              }
+              proposer_address
+              status
+              submit_time
+              title
+              voting_end_time
+              voting_start_time
+            }
+            proposals_aggregate(where: $where) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: ProposalsPassed
+        query: |
+          query ProposalsPassed ($limit: Int!, $offset: Int!, $where: proposals_bool_exp = {}) {
+            all_proposals: proposals(order_by: [{passed_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: $where) {
+              content
+              deposit_end_time
+              description
+              id
+              proposal_type
+              proposal_deposits {
+                amount
+                depositor_address
+              }
+              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
+                aggregate {
+                  count
+                }
+              }
+              proposer_address
+              status
+              submit_time
+              title
+              voting_end_time
+              voting_start_time
+            }
+            proposals_aggregate(where: $where) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: ProposalsRejected
+        query: |
+          query ProposalsRejected ($limit: Int!, $offset: Int!, $where: proposals_bool_exp = {}) {
+            all_proposals: proposals(order_by: [{rejected_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: $where) {
+              content
+              deposit_end_time
+              description
+              id
+              proposal_type
+              proposal_deposits {
+                amount
+                depositor_address
+              }
+              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
+                aggregate {
+                  count
+                }
+              }
+              proposer_address
+              status
+              submit_time
+              title
+              voting_end_time
+              voting_start_time
+            }
+            proposals_aggregate(where: $where) {
+              aggregate {
+                count
+              }
+            }
+          }
+      - name: ProposalsSearch
+        query: |
+          query ProposalsSearch ($limit: Int!, $offset: Int!, $searchString: String!) {
+            all_proposals: proposals(order_by: [{active_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: {_or:[{title:{_ilike:$searchString}},{description:{_ilike:$searchString}}]}) {
+              content
+              deposit_end_time
+              description
+              id
+              proposal_type
+              proposal_deposits {
+                amount
+                depositor_address
+              }
+              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
+                aggregate {
+                  count
+                }
+              }
+              proposer_address
+              status
+              submit_time
+              title
+              voting_end_time
+              voting_start_time
+            }
+            proposals_aggregate(where: {_or:[{title:{_ilike:$searchString}},{description:{_ilike:$searchString}}]}) {
+              aggregate {
+                count
+              }
+            }
+          }
       - name: ProposalTallies
         query: |
           query ProposalTallies ($id: Int!) {
-            proposal_tally_result(where: {proposal_id:{_eq:$id}}, order_by: {height:desc}, limit: 1) {
+            proposal_tally_results(where: {proposal_id:{_eq:$id}}, order_by: {height:desc}, limit: 1) {
               abstain
               no
               height
@@ -127,7 +282,7 @@
       - name: Validators
         query: |
           query Validators {
-            validator_status(distinct_on: validator_address, order_by: {validator_address:asc,height:desc_nulls_last}) {
+            proposal_validator_status_snapshot: validator_status(distinct_on: validator_address, order_by: {validator_address:asc,height:desc_nulls_last}) {
               height
               jailed
               status
@@ -167,7 +322,7 @@
       - name: VoteHistory
         query: |
           query VoteHistory ($address: String!) {
-            proposal_vote(where: {voter_address:{_eq:$address},_and:{is_valid:{_eq:true}}}) {
+            proposal_votes(where: {voter_address:{_eq:$address},_and:{is_valid:{_eq:true}}}) {
               option
               weight
               height
@@ -179,7 +334,7 @@
       - name: VoteOption
         query: |
           query VoteOption ($proposalId: Int!, $option: String!) {
-            proposal_vote_aggregate(where: {_and:{is_valid:{_eq:true},proposal_id:{_eq:$proposalId},option:{_eq:$option}}}) {
+            proposal_votes_aggregate(where: {_and:{is_valid:{_eq:true},proposal_id:{_eq:$proposalId},option:{_eq:$option}}}) {
               aggregate {
                 count
               }
@@ -188,7 +343,7 @@
       - name: Votes
         query: |
           query Votes ($address: String!, $proposalId: Int!, $propId: String!) {
-            proposal_vote(where: {proposal_id:{_eq:$proposalId},voter_address:{_eq:$address}}, order_by: {height:desc}) {
+            proposal_votes(where: {proposal_id:{_eq:$proposalId},voter_address:{_eq:$address}}, order_by: {height:desc}) {
               voter_address
               option
               height
@@ -206,201 +361,23 @@
               }
             }
           }
-      - name: ProposalsFailed
-        query: |
-          query ProposalsFailed ($limit: Int!, $offset: Int!, $where: proposal_bool_exp = {}) {
-            all_proposals: proposal(order_by: [{failed_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: $where) {
-              content
-              deposit_end_time
-              description
-              id
-              proposal_type
-              proposal_deposits {
-                amount
-                depositor_address
-              }
-              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
-                aggregate {
-                  count
-                }
-              }
-              proposer_address
-              status
-              submit_time
-              title
-              voting_end_time
-              voting_start_time
-            }
-            proposal_aggregate(where: $where) {
-              aggregate {
-                count
-              }
-            }
-          }
-      - name: ProposalsActive
-        query: |
-          query ProposalsActive ($limit: Int!, $offset: Int!, $where: proposal_bool_exp = {}) {
-            all_proposals: proposal(order_by: [{active_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: $where) {
-              content
-              deposit_end_time
-              description
-              id
-              proposal_type
-              proposal_deposits {
-                amount
-                depositor_address
-              }
-              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
-                aggregate {
-                  count
-                }
-              }
-              proposer_address
-              status
-              submit_time
-              title
-              voting_end_time
-              voting_start_time
-            }
-            proposal_aggregate(where: $where) {
-              aggregate {
-                count
-              }
-            }
-          }
-      - name: ProposalsPassed
-        query: |
-          query ProposalsPassed ($limit: Int!, $offset: Int!, $where: proposal_bool_exp = {}) {
-            all_proposals: proposal(order_by: [{passed_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: $where) {
-              content
-              deposit_end_time
-              description
-              id
-              proposal_type
-              proposal_deposits {
-                amount
-                depositor_address
-              }
-              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
-                aggregate {
-                  count
-                }
-              }
-              proposer_address
-              status
-              submit_time
-              title
-              voting_end_time
-              voting_start_time
-            }
-            proposal_aggregate(where: $where) {
-              aggregate {
-                count
-              }
-            }
-          }
-      - name: ProposalsRejected
-        query: |
-          query ProposalsRejected ($limit: Int!, $offset: Int!, $where: proposal_bool_exp = {}) {
-            all_proposals: proposal(order_by: [{rejected_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: $where) {
-              content
-              deposit_end_time
-              description
-              id
-              proposal_type
-              proposal_deposits {
-                amount
-                depositor_address
-              }
-              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
-                aggregate {
-                  count
-                }
-              }
-              proposer_address
-              status
-              submit_time
-              title
-              voting_end_time
-              voting_start_time
-            }
-            proposal_aggregate(where: $where) {
-              aggregate {
-                count
-              }
-            }
-          }
-      - name: ProposalsSearch
-        query: |
-          query ProposalsSearch ($limit: Int!, $offset: Int!, $searchString: String!) {
-            all_proposals: proposal(order_by: [{active_first_order:asc},{id:desc}], limit: $limit, offset: $offset, where: {_or:[{title:{_ilike:$searchString}},{description:{_ilike:$searchString}}]}) {
-              content
-              deposit_end_time
-              description
-              id
-              proposal_type
-              proposal_deposits {
-                amount
-                depositor_address
-              }
-              proposal_votes_aggregate(where: {is_valid:{_eq:true}}) {
-                aggregate {
-                  count
-                }
-              }
-              proposer_address
-              status
-              submit_time
-              title
-              voting_end_time
-              voting_start_time
-            }
-            proposal_aggregate(where: {_or:[{title:{_ilike:$searchString}},{description:{_ilike:$searchString}}]}) {
-              aggregate {
-                count
-              }
-            }
-          }
-      - name: Validators_new
-        query: |
-          query Validators {
-            block(limit: 1, order_by: {height:desc_nulls_last}) {
-              height
-              validator_statuses(order_by: {validator_address:asc}) {
-                height
-                jailed
-                status
-                validator_address
-                validator_info {
-                  self_delegate_address
-                  validator_descriptions {
-                    identity
-                    avatar_url
-                    details
-                    moniker
-                    website
-                  }
-                }
-              }
-            }
-          }
       - name: ChainInfos
         query: |
           query ChainInfos {
             averageBlockTime: average_block_time_per_hour(limit: 1, order_by: {height:desc}) {
               averageTime: average_time
             }
-            account_aggregate {
+            account_aggregate: accounts_aggregate {
               aggregate {
                 count
               }
             }
-            block_aggregate {
+            block_aggregate: blocks_aggregate {
               aggregate {
                 count
               }
             }
-            activeTotal: block(limit: 1, order_by: {height:desc_nulls_last}) {
+            activeTotal: blocks(limit: 1, order_by: {height:desc_nulls_last}) {
               height
               validator_statuses_aggregate(where: {status:{_eq:"BOND_STATUS_BONDED"}}) {
                 aggregate {
@@ -408,7 +385,7 @@
                 }
               }
             }
-            inactiveTotal: block(limit: 1, order_by: {height:desc_nulls_last}) {
+            inactiveTotal: blocks(limit: 1, order_by: {height:desc_nulls_last}) {
               height
               validator_statuses_aggregate(where: {status:{_neq:"BOND_STATUS_BONDED"}}) {
                 aggregate {
@@ -416,7 +393,7 @@
                 }
               }
             }
-            total: block(limit: 1, order_by: {height:desc_nulls_last}) {
+            total: blocks(limit: 1, order_by: {height:desc_nulls_last}) {
               height
               validator_statuses_aggregate {
                 aggregate {
@@ -424,75 +401,63 @@
                 }
               }
             }
-            actionable_proposals: proposal_aggregate(where: {_or:[{status:{_eq:"PROPOSAL_STATUS_DEPOSIT_PERIOD"}},{status:{_eq:"PROPOSAL_STATUS_VOTING_PERIOD"}}]}) {
+            actionable_proposals: proposals_aggregate(where: {_or:[{status:{_eq:"PROPOSAL_STATUS_DEPOSIT_PERIOD"}},{status:{_eq:"PROPOSAL_STATUS_VOTING_PERIOD"}}]}) {
               aggregate {
                 count
               }
             }
-            voting_proposals: proposal_aggregate(where: {status:{_eq:"PROPOSAL_STATUS_VOTING_PERIOD"}}) {
+            voting_proposals: proposals_aggregate(where: {status:{_eq:"PROPOSAL_STATUS_VOTING_PERIOD"}}) {
               aggregate {
                 count
               }
             }
-            all_proposals: proposal_aggregate {
+            all_proposals: proposals_aggregate {
               aggregate {
                 count
               }
             }
           }
-      - name: ChainInfosNews
+      - name: ChainInfoV2
         query: |
           query ChainInfosNew {
             averageBlockTime: average_block_time_per_hour {
               averageTime: average_time
             }
-            account_aggregate {
+            account_aggregate: accounts_aggregate {
               aggregate {
                 count
               }
             }
-            block_aggregate {
+            block_aggregate: blocks_aggregate {
               aggregate {
                 count
               }
             }
-            activeTotal: block(limit: 1, order_by: {height:desc}) {
-              height
-              validator_statuses_aggregate(where: {status:{_eq:"BOND_STATUS_BONDED"}}) {
-                aggregate {
-                  count
-                }
-              }
+            validators: validator_status(distinct_on: validator_address, order_by: {validator_address:asc,height:desc_nulls_last}) {
+              validator_address
+              status
             }
-            inactiveTotal: block(limit: 1, order_by: {height:desc}) {
-              height
-              validator_statuses_aggregate(where: {status:{_neq:"BOND_STATUS_BONDED"}}) {
-                aggregate {
-                  count
-                }
-              }
-            }
-            total: block(limit: 1, order_by: {height:desc}) {
-              height
-              validator_statuses_aggregate {
-                aggregate {
-                  count
-                }
-              }
-            }
-            actionable_proposals: proposal_aggregate(where: {_or:[{status:{_eq:"PROPOSAL_STATUS_DEPOSIT_PERIOD"}},{status:{_eq:"PROPOSAL_STATUS_VOTING_PERIOD"}}]}) {
+            actionable_proposals: proposals_aggregate(where: {_or:[{status:{_eq:"PROPOSAL_STATUS_DEPOSIT_PERIOD"}},{status:{_eq:"PROPOSAL_STATUS_VOTING_PERIOD"}}]}) {
               aggregate {
                 count
               }
             }
-            voting_proposals: proposal_aggregate(where: {status:{_eq:"PROPOSAL_STATUS_VOTING_PERIOD"}}) {
+            voting_proposals: proposals_aggregate(where: {status:{_eq:"PROPOSAL_STATUS_VOTING_PERIOD"}}) {
               aggregate {
                 count
               }
             }
-            all_proposals: proposal_aggregate {
+            all_proposals: proposals_aggregate {
               aggregate {
                 count
               }
+            }
+          }
+      - name: QueryGenesisBalance
+        query: |
+          query QueryGenesisBalance ($address: String!) {
+            genesis_balance: balances(where: {_and:{address:{_eq:$address},_not:{block:{}}}}) {
+              address
+              coins
             }
           }

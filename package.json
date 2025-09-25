@@ -17,10 +17,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@atomone/atomone-types": "^1.0.3",
     "@cosmjs/proto-signing": "^0.36.0",
     "@cosmjs/stargate": "^0.36.0",
     "@cosmjs/tendermint-rpc": "^0.36.0",
-    "@atomone/atomone-types": "^1.0.3",
     "@eclesia/basic-pg-indexer": "^2.9.0",
     "@eclesia/core-modules-pg": "^2.9.0",
     "@eclesia/indexer-engine": "^2.9.0",

@@ -1,5 +1,5 @@
 table:
-  name: validator_info
+  name: validator_infos
   schema: public
 object_relationships:
   - name: account
@@ -17,14 +17,14 @@ array_relationships:
       foreign_key_constraint_on:
         column: validator_address
         table:
-          name: validator_commission
+          name: validator_commissions
           schema: public
   - name: validator_descriptions
     using:
       foreign_key_constraint_on:
         column: validator_address
         table:
-          name: validator_description
+          name: validator_descriptions
           schema: public
   - name: validator_statuses
     using:
@@ -38,18 +38,5 @@ array_relationships:
       foreign_key_constraint_on:
         column: validator_address
         table:
-          name: validator_voting_power
+          name: validator_voting_powers
           schema: public
-select_permissions:
-  - role: anonymous
-    permission:
-      columns:
-        - height
-        - consensus_address
-        - max_change_rate
-        - max_rate
-        - operator_address
-        - self_delegate_address
-      filter: {}
-      allow_aggregations: true
-    comment: ""

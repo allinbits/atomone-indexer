@@ -1,0 +1,3 @@
+table:
+  name: staking_pool
+  schema: public

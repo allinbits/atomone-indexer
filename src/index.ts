@@ -2,8 +2,8 @@ import {
   atomoneProtoRegistry,
 } from "@atomone/atomone-types/atomone/client.js";
 import {
-  cosmosProtoRegistry,
-} from "@atomone/atomone-types/cosmos/client.js";
+  defaultRegistryTypes,
+} from "@cosmjs/stargate";
 import {
   PgIndexer, PgIndexerConfig,
 } from "@eclesia/basic-pg-indexer";
@@ -29,8 +29,8 @@ const config: PgIndexerConfig = {
   dbConnectionString: process.env.PG_CONNECTION_STRING || "postgres://postgres:password@localhost:5432/atomone",
 };
 
-const registry = cosmosProtoRegistry.concat(atomoneProtoRegistry);
-const blocksModule = new Blocks.FullBlocksModule(registry);
+const registry = defaultRegistryTypes.concat(atomoneProtoRegistry);
+const blocksModule = new Blocks.MinimalBlocksModule(registry);
 const authModule = new AuthModule(registry);
 const bankModule = new BankModule(registry);
 const stakingModule = new StakingModule(registry);

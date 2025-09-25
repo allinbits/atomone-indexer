@@ -26,10 +26,10 @@ RUN --mount=type=cache,target=/root/.npm \
 # Final image
 FROM node:20-alpine
 
-ENV LOG_LEVEL debug
-ENV CHAIN_PREFIX atone
-ENV QUEUE_SIZE 200
-ENV CHAIN_START_HEIGHT 1
+ENV LOG_LEVEL=debug
+ENV CHAIN_PREFIX=atone
+ENV QUEUE_SIZE=200
+ENV CHAIN_START_HEIGHT=1
 
 # USER node
 

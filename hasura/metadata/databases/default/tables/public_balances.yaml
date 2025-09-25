@@ -8,13 +8,3 @@ object_relationships:
   - name: block
     using:
       foreign_key_constraint_on: height
-select_permissions:
-  - role: anonymous
-    permission:
-      columns:
-        - coins
-        - height
-        - address
-      filter: {}
-      allow_aggregations: true
-    comment: ""

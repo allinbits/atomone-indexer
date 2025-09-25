@@ -1,5 +1,5 @@
 table:
-  name: account
+  name: accounts
   schema: public
 array_relationships:
   - name: balances
@@ -14,21 +14,21 @@ array_relationships:
       foreign_key_constraint_on:
         column: depositor_address
         table:
-          name: proposal_deposit
+          name: proposal_deposits
           schema: public
   - name: proposal_votes
     using:
       foreign_key_constraint_on:
         column: voter_address
         table:
-          name: proposal_vote
+          name: proposal_votes
           schema: public
   - name: proposals
     using:
       foreign_key_constraint_on:
         column: proposer_address
         table:
-          name: proposal
+          name: proposals
           schema: public
   - name: staked_balances
     using:
@@ -42,13 +42,5 @@ array_relationships:
       foreign_key_constraint_on:
         column: self_delegate_address
         table:
-          name: validator_info
+          name: validator_infos
           schema: public
-select_permissions:
-  - role: anonymous
-    permission:
-      columns:
-        - address
-      filter: {}
-      allow_aggregations: true
-    comment: ""
