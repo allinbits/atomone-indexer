@@ -270,15 +270,6 @@
               proposal_id
             }
           }
-      - name: Staking
-        query: |
-          query Staking {
-            staking_pool(order_by: {height:desc_nulls_last}) {
-              bonded_tokens
-              height
-              not_bonded_tokens
-            }
-          }
       - name: Validators
         query: |
           query Validators {
@@ -459,5 +450,23 @@
             genesis_balance: balances(where: {_and:{address:{_eq:$address},_not:{block:{}}}}) {
               address
               coins
+            }
+          }
+      - name: Staking
+        query: |
+          query Staking {
+            staking_pool(order_by: {height:desc_nulls_last}, limit: 1) {
+              bonded_tokens
+              height
+              not_bonded_tokens
+            }
+          }
+      - name: StakingHeight
+        query: |
+          query StakingHeight ($height: bigint!) {
+            staking_pool(order_by: {height:desc_nulls_last}, limit: 5, where: {height:{_lte:$height}}) {
+              bonded_tokens
+              height
+              not_bonded_tokens
             }
           }
