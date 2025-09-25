@@ -9,14 +9,14 @@ services:
     environment:
       NODE_ENV: production
       PG_CONNECTION_STRING: postgres://postgres:postgrespassword@postgres:5432/postgres
-      RPC_ENDPOINT: wss://atomone-rpc-history.infra.allinbits.vip:443
+      RPC_ENDPOINT: wss://atomone-rpc.allinbits.com
       CHAIN_START_HEIGHT: 1
       LOG_LEVEL: debug
       CHAIN_PREFIX: atone
       PROCESS_GENESIS: true
       QUEUE_SIZE: 200
-   # volumes:
-   #   - ./genesis.json:/usr/src/app/genesis.json
+    volumes:
+      - ./genesis.json:/usr/src/app/genesis.json
     depends_on:
       postgres:
         condition: service_healthy
