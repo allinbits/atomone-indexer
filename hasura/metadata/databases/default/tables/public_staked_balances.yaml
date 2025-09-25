@@ -11,3 +11,15 @@ object_relationships:
   - name: validatorByValidator
     using:
       foreign_key_constraint_on: validator
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - shares
+        - delegator
+        - validator
+        - amount
+      filter: {}
+      allow_aggregations: true
+    comment: ""

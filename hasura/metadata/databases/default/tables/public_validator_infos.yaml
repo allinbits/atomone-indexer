@@ -40,3 +40,16 @@ array_relationships:
         table:
           name: validator_voting_powers
           schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - consensus_address
+        - max_change_rate
+        - max_rate
+        - operator_address
+        - self_delegate_address
+      filter: {}
+      allow_aggregations: true
+    comment: ""

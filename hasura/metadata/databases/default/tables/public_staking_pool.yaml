@@ -1,3 +1,13 @@
 table:
   name: staking_pool
   schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - bonded_tokens
+        - not_bonded_tokens
+      filter: {}
+      allow_aggregations: true
+    comment: ""

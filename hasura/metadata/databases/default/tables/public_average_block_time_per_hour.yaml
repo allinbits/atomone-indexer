@@ -1,3 +1,13 @@
 table:
   name: average_block_time_per_hour
   schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - one_row_id
+        - average_time
+      filter: {}
+      allow_aggregations: true
+    comment: ""

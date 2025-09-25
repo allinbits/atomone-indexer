@@ -111,3 +111,17 @@ array_relationships:
         table:
           name: validator_voting_powers
           schema: public
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - total_gas
+        - num_txs
+        - signed_by
+        - hash
+        - proposer_address
+        - timestamp
+      filter: {}
+      allow_aggregations: true
+    comment: ""

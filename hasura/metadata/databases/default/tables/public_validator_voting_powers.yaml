@@ -8,3 +8,14 @@ object_relationships:
   - name: validator_info
     using:
       foreign_key_constraint_on: validator_address
+select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+        - height
+        - voting_power
+        - delegator_shares
+        - validator_address
+      filter: {}
+      allow_aggregations: true
+    comment: ""
