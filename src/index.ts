@@ -30,7 +30,7 @@ const config: PgIndexerConfig = {
 };
 
 const registry = defaultRegistryTypes.concat(atomoneProtoRegistry);
-const blocksModule = new Blocks.MinimalBlocksModule(registry);
+const blocksModule = new Blocks.FullBlocksModule(registry);
 const authModule = new AuthModule(registry);
 const bankModule = new BankModule(registry);
 const stakingModule = new StakingModule(registry);
