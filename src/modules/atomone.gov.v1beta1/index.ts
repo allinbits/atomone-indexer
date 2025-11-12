@@ -67,7 +67,7 @@ import {
   PgIndexer,
 } from "@eclesia/basic-pg-indexer";
 import {
-  EcleciaIndexer, Types,
+  EcleciaIndexer, RPC_TIMEOUT_MS, Types,
 } from "@eclesia/indexer-engine";
 import {
   Utils,
@@ -458,7 +458,7 @@ export class GovModule implements Types.IndexingModule {
         }
       });
     });
-    this.indexer.on("periodic/50", async (event) => {
+    this.indexer.on("periodic/small", async (event) => {
       const db = this.pgIndexer.getInstance();
       const proposals = await db.query(
         "SELECT * FROM proposals WHERE voting_start_time<=$1 and voting_end_time>=$1 AND status='PROPOSAL_STATUS_VOTING_PERIOD'",
@@ -470,11 +470,19 @@ export class GovModule implements Types.IndexingModule {
             proposalId: BigInt(proposals.rows[i].id),
           });
           const tally = QueryTallyResultRequest.encode(q).finish();
-          const tallyq = await this.indexer.callABCI(
-            "/atomone.gov.v1beta1.Query/TallyResult",
-            tally,
-            event.height,
-          );
+          const abciTimeout = new Promise<Uint8Array>((_, reject) => {
+            setTimeout(() => {
+              reject(new Error("ABCI call timed out"));
+            }, RPC_TIMEOUT_MS);
+          });
+          const tallyq = await Promise.race([
+            this.indexer.callABCI(
+              "/atomone.gov.v1beta1.Query/TallyResult",
+              tally,
+              event.height,
+            ),
+            abciTimeout,
+          ]);
 
           const tallyresult = QueryTallyResultResponse.decode(tallyq).tally;
           if (tallyresult) {

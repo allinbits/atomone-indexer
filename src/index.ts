@@ -22,8 +22,11 @@ const config: PgIndexerConfig = {
   rpcUrl: process.env.RPC_ENDPOINT || "https://rpc.atomone.network",
   logLevel: process.env.LOG_LEVEL as PgIndexerConfig["logLevel"] ?? "info",
   usePolling: false,
-  pollingInterval: 0,
   processGenesis: process.env.PROCESS_GENESIS === "true" || false,
+  enablePrometheus: true,
+  prometheusPort: 9090,
+  enableHealthcheck: true,
+  healthCheckPort: 8080,
   minimal: false,
   genesisPath: "./genesis.json",
   dbConnectionString: process.env.PG_CONNECTION_STRING || "postgres://postgres:password@localhost:5432/atomone",
@@ -37,6 +40,11 @@ const stakingModule = new StakingModule(registry);
 const govModule = new GovModule(registry);
 const indexer = new PgIndexer(config, [blocksModule, authModule, bankModule, stakingModule, govModule]);
 
+indexer.indexer.on("fatal-error", (error) => {
+  console.error("Fatal error in indexer:", error);
+  console.trace();
+  process.exit(1);
+});
 process.on("unhandledRejection", (reason, promise) => {
   console.log("Unhandled Rejection at:", promise, "reason:", reason);
   console.trace();
