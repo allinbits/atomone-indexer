@@ -16,19 +16,19 @@ import {
 } from "./modules/atomone.gov.v1beta1/index.js";
 
 const config: PgIndexerConfig = {
-  startHeight: 1,
+  startHeight: Number(process.env.START_HEIGHT) || 1,
   batchSize: Number(process.env.QUEUE_SIZE) || 300,
-  modules: [],
+  modules: process.env.MODULES ? process.env.MODULES.split(",") : [],
   rpcUrl: process.env.RPC_ENDPOINT || "https://rpc.atomone.network",
   logLevel: process.env.LOG_LEVEL as PgIndexerConfig["logLevel"] ?? "info",
-  usePolling: false,
+  usePolling: process.env.USE_POLLING === "true" || false,
   processGenesis: process.env.PROCESS_GENESIS === "true" || false,
-  enablePrometheus: true,
-  prometheusPort: 9090,
-  enableHealthcheck: true,
-  healthCheckPort: 8080,
-  minimal: false,
-  genesisPath: "./genesis.json",
+  enablePrometheus: process.env.ENABLE_PROMETHEUS === "false" ? false : true,
+  prometheusPort: Number(process.env.PROMETHEUS_PORT) || 9090,
+  enableHealthcheck: process.env.ENABLE_HEALTHCHECK === "false" ? false : true,
+  healthCheckPort: Number(process.env.HEALTHCHECK_PORT) || 8080,
+  minimal: process.env.MINIMAL === "true" || false,
+  genesisPath: process.env.GENESIS_PATH || "./genesis.json",
   dbConnectionString: process.env.PG_CONNECTION_STRING || "postgres://postgres:password@localhost:5432/atomone",
 };
 
