@@ -8,6 +8,8 @@ import {
   Proposal as ProposalV1,
 } from "@atomone/atomone-types/atomone/gov/v1/gov.js";
 import {
+  QueryParamsRequest,
+  QueryParamsResponse,
   QueryProposalRequest as QueryProposalRequestV1,
   QueryProposalResponse as QueryProposalResponseV1,
 } from "@atomone/atomone-types/atomone/gov/v1/query.js";
@@ -418,6 +420,10 @@ export class GovModule implements Types.IndexingModule {
         x => x.type == "active_proposal" || x.type == "inactive_proposal",
       );
 
+      const deposit_events = events.filter(
+        x => x.type == "min_deposit_change" || x.type == "min_initial_deposit_change",
+      );
+      if (deposit_events.length > 0) await this.queryAndSaveParams();
       prop_events.forEach((x) => {
         const type = x.type;
         if (Utils.decodeAttr(x.attributes[0].key) == "proposal_id") {
@@ -460,6 +466,7 @@ export class GovModule implements Types.IndexingModule {
     });
     this.indexer.on("periodic/small", async (event) => {
       const db = this.pgIndexer.getInstance();
+      await this.queryAndSaveParams();
       const proposals = await db.query(
         "SELECT * FROM proposals WHERE voting_start_time<=$1 and voting_end_time>=$1 AND status='PROPOSAL_STATUS_VOTING_PERIOD'",
         [event.timestamp],
@@ -498,6 +505,26 @@ export class GovModule implements Types.IndexingModule {
         (event.value as any).params,
       ]);
     });
+  }
+
+  async queryAndSaveParams() {
+    const q = QueryParamsRequest.fromPartial({
+      paramsType: "deposit",
+    });
+    const paramsreq = QueryParamsRequest.encode(q).finish();
+
+    this.indexer.callABCI("/atomone.gov.v1.Query/Params", paramsreq).then(
+      async (paramsq) => {
+        const params = QueryParamsResponse.decode(paramsq).params;
+        if (params) {
+          const db = this.pgIndexer.getInstance();
+          await db.query("INSERT INTO gov_params(params) VALUES($1)", [
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            params as any,
+          ]);
+        }
+      },
+    );
   }
 
   async saveProposal(
