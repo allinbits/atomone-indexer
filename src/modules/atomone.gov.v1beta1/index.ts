@@ -423,7 +423,7 @@ export class GovModule implements Types.IndexingModule {
       const deposit_events = events.filter(
         x => x.type == "min_deposit_change" || x.type == "min_initial_deposit_change",
       );
-      if (deposit_events.length > 0) await this.queryAndSaveParams();
+      if (deposit_events.length > 0) await this.queryAndSaveParams(event.height ?? 0);
       prop_events.forEach((x) => {
         const type = x.type;
         if (Utils.decodeAttr(x.attributes[0].key) == "proposal_id") {
@@ -466,7 +466,7 @@ export class GovModule implements Types.IndexingModule {
     });
     this.indexer.on("periodic/small", async (event) => {
       const db = this.pgIndexer.getInstance();
-      await this.queryAndSaveParams();
+      await this.queryAndSaveParams(event.height ?? 0);
       const proposals = await db.query(
         "SELECT * FROM proposals WHERE voting_start_time<=$1 and voting_end_time>=$1 AND status='PROPOSAL_STATUS_VOTING_PERIOD'",
         [event.timestamp],
@@ -507,7 +507,7 @@ export class GovModule implements Types.IndexingModule {
     });
   }
 
-  async queryAndSaveParams() {
+  async queryAndSaveParams(height: number) {
     const q = QueryParamsRequest.fromPartial({
       paramsType: "deposit",
     });
@@ -518,11 +518,12 @@ export class GovModule implements Types.IndexingModule {
         const params = QueryParamsResponse.decode(paramsq).params;
         if (params) {
           const db = this.pgIndexer.getInstance();
-          await db.query("INSERT INTO gov_params(params) VALUES($1)", [
+          await db.query("UPDATE gov_params SET params=$1, height=$2", [
             JSON.parse(JSON.stringify(params, (key, value) =>
               typeof value === "bigint" ? value.toString() : value,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             )) as any,
+            height,
           ]);
         }
       },
