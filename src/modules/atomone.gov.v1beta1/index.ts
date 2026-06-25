@@ -519,8 +519,10 @@ export class GovModule implements Types.IndexingModule {
         if (params) {
           const db = this.pgIndexer.getInstance();
           await db.query("INSERT INTO gov_params(params) VALUES($1)", [
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            params as any,
+            JSON.parse(JSON.stringify(params, (key, value) =>
+              typeof value === "bigint" ? value.toString() : value,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            )) as any,
           ]);
         }
       },
