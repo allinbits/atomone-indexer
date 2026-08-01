@@ -26,6 +26,7 @@ export default defineConfig([
     clean: true,
     sourcemap: true,
     dts: true,
+    fixedExtension: false,
     format: ["esm"],
   },
 ]);
