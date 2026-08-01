@@ -11,6 +11,7 @@ services:
       PG_CONNECTION_STRING: postgres://postgres:postgrespassword@postgres:5432/postgres
       RPC_ENDPOINT: wss://atomone-rpc.allinbits.com
       CHAIN_START_HEIGHT: 1
+      USE_POLLING: true
       LOG_LEVEL: debug
       CHAIN_PREFIX: atone
       PROCESS_GENESIS: true

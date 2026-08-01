@@ -21,7 +21,7 @@ const config: PgIndexerConfig = {
   modules: [],
   rpcUrl: process.env.RPC_ENDPOINT || "https://rpc.atomone.network",
   logLevel: process.env.LOG_LEVEL as PgIndexerConfig["logLevel"] ?? "info",
-  usePolling: false,
+  usePolling: process.env.USE_POLLING || process.env.USE_POLLING === "true" || false,
   processGenesis: process.env.PROCESS_GENESIS === "true" || false,
   enablePrometheus: true,
   prometheusPort: 9090,
