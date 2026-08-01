@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Use production node environment by default.
 # ENV NODE_ENV production
@@ -24,7 +24,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 
 # Final image
-FROM node:20-alpine
+FROM node:22-alpine
 
 ENV LOG_LEVEL=debug
 ENV CHAIN_PREFIX=atone
