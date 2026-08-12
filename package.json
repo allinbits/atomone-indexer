@@ -1,6 +1,6 @@
 {
   "name": "@eclesia/atomone-indexer",
-  "version": "2.1.6",
+  "version": "2.2.1",
   "description": "",
   "type": "module",
   "scripts": {
@@ -17,13 +17,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@atomone/atomone-types": "^1.0.3",
-    "@cosmjs/proto-signing": "^0.36.0",
-    "@cosmjs/stargate": "^0.36.0",
-    "@cosmjs/tendermint-rpc": "^0.36.0",
+    "@atomone/atomone-types": "^4.0.2",
+    "@cosmjs/proto-signing": "^0.38.1",
+    "@cosmjs/stargate": "^0.38.1",
+    "@cosmjs/tendermint-rpc": "^0.38.1",
     "@eclesia/basic-pg-indexer": "^2.14.1",
-    "@eclesia/core-modules-pg": "^2.14.4",
-    "@eclesia/indexer-engine": "^2.14.2",
+    "@eclesia/core-modules-pg": "^2.15.1",
+    "@eclesia/indexer-engine": "^2.14.5",
     "bignumber.js": "^9.3.1",
     "json-with-bigint": "^3.4.4",
     "pg": "^8.16.3"
