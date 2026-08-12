@@ -24,8 +24,8 @@ importers:
         specifier: ^2.14.1
         version: 2.14.1
       '@eclesia/core-modules-pg':
-        specifier: ^2.15.0
-        version: 2.15.0
+        specifier: ^2.15.1
+        version: 2.15.1
       '@eclesia/indexer-engine':
         specifier: ^2.14.5
         version: 2.14.5
@@ -167,8 +167,8 @@ packages:
   '@eclesia/basic-pg-indexer@2.14.1':
     resolution: {integrity: sha512-Jn1wZcLRv2xvcyVuh4W3fdOP844z7PWBblg4tc/4OCt4Dbr9RkuzJlQxLPG9dNzyfQX02pz++jsqUumx20Z+lA==}
 
-  '@eclesia/core-modules-pg@2.15.0':
-    resolution: {integrity: sha512-z1u/ehZUVpO6HYBU7JV7m7zLXeY8ty8Su/Spn0JSiyUQf2Qp2HoFV4iZSupWg0gwAKlntowBFKTC7D75RquQgA==}
+  '@eclesia/core-modules-pg@2.15.1':
+    resolution: {integrity: sha512-G2/XFFVTFQKiw1sJ+/JV4LXsHHBf6r70IKaeLjT3WD+K45PQqfkVeZ3mPU5jYjuCkJ6zo2NmwrYbNRaX02RuyA==}
 
   '@eclesia/indexer-engine@2.14.5':
     resolution: {integrity: sha512-hJoAilmKHWSHrUvCFE41B6lR2+s0ylGBvKVITZ695KnEGDx69BwxpsJF55NMaCJnMCKLG2Ju0mRo/LNdDlKp0A==}
@@ -1861,7 +1861,7 @@ snapshots:
       - pg-native
       - utf-8-validate
 
-  '@eclesia/core-modules-pg@2.15.0':
+  '@eclesia/core-modules-pg@2.15.1':
     dependencies:
       '@atomone/atomone-types': 4.0.2
       '@cosmjs/encoding': 0.36.0
