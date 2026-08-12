@@ -2,6 +2,9 @@ import {
   atomoneProtoRegistry,
 } from "@atomone/atomone-types/atomone/client.js";
 import {
+  cosmosProtoRegistry,
+} from "@atomone/atomone-types/cosmos/client.js";
+import {
   defaultRegistryTypes,
 } from "@cosmjs/stargate";
 import {
@@ -32,7 +35,13 @@ const config: PgIndexerConfig = {
   dbConnectionString: process.env.PG_CONNECTION_STRING || "postgres://postgres:password@localhost:5432/atomone",
 };
 
-const registry = defaultRegistryTypes.concat(atomoneProtoRegistry);
+const registry = cosmosProtoRegistry.concat(atomoneProtoRegistry);
+for (const [typeUrl, generatedType] of defaultRegistryTypes) {
+  if (registry.find(([url]) => url === typeUrl)) {
+    continue;
+  }
+  registry.push([typeUrl, generatedType]);
+}
 const blocksModule = new Blocks.FullBlocksModule(registry);
 const authModule = new AuthModule(registry);
 const bankModule = new BankModule(registry);
