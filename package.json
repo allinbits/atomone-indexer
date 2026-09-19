@@ -21,9 +21,9 @@
     "@cosmjs/proto-signing": "^0.38.1",
     "@cosmjs/stargate": "^0.38.1",
     "@cosmjs/tendermint-rpc": "^0.38.1",
-    "@eclesia/basic-pg-indexer": "^2.14.1",
-    "@eclesia/core-modules-pg": "^2.15.1",
-    "@eclesia/indexer-engine": "^2.14.5",
+    "@eclesia/basic-pg-indexer": "^2.16.2",
+    "@eclesia/core-modules-pg": "^2.16.2",
+    "@eclesia/indexer-engine": "^2.16.2",
     "bignumber.js": "^9.3.1",
     "json-with-bigint": "^3.4.4",
     "pg": "^8.16.3"
