@@ -56,12 +56,16 @@ jobs:
         if: steps.changesets.outputs.published == 'true'
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
-  # A tag pushed with GITHUB_TOKEN does not start a workflow of its own, so the
-  # release drives the image build directly instead of relying on the tag.
+  # The single entry point for image builds, so a commit is never built twice.
+  # On an ordinary push the image is tagged latest; on a release commit it also
+  # carries the version, which a tag-triggered build could not do because a tag
+  # pushed with GITHUB_TOKEN starts no workflow.
   docker:
     name: Docker image
     needs: release
-    if: needs.release.outputs.published == 'true'
+    # Runs even when the release job fails, so a versioning problem never costs
+    # the latest image, which is how the standalone build behaved before.
+    if: ${{ !cancelled() }}
     permissions:
       contents: read
       packages: write

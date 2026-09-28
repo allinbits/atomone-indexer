@@ -34,7 +34,7 @@ The `Release` workflow runs on every push to `main`:
 2. **When that PR is merged**, the same workflow finds nothing pending, tags the commit (`@eclesia/atomone-indexer@<version>`) and creates the GitHub release.
 3. It then builds and pushes the container image, tagged both `latest` and with the released version.
 
-That last step is part of the release workflow on purpose: a tag pushed with `GITHUB_TOKEN` doesn't start a workflow of its own, so a tag-triggered image build would never fire. `docker.yml` still builds on pushes to `main` and on manual `v*` tags as before.
+That last step belongs to the release workflow on purpose. A tag pushed with `GITHUB_TOKEN` doesn't start a workflow of its own, so a tag-triggered image build would never fire — and having `docker.yml` also trigger on pushes to `main` would build the release commit twice. So the release workflow is the single entry point: it calls `docker.yml` on every push to `main`, tagging the image `latest`, plus the version when that push released one. `docker.yml` still runs on a manual `v*` tag, and can be dispatched by hand.
 
 ### Useful local commands
 

@@ -2,12 +2,13 @@ name: Build and Push Docker image
 
 on:
   push:
-    branches:
-      - "main"
     tags:
       - "v*"
-  # Called by the Release workflow once a version has been tagged, so the image
-  # carries that version: a tag pushed with GITHUB_TOKEN starts no workflow.
+  workflow_dispatch:
+  # The Release workflow calls this on every push to main: directly on a push
+  # trigger as well would build the same commit twice, and a tag pushed with
+  # GITHUB_TOKEN starts no workflow of its own, so the release passes the
+  # version it just tagged.
   workflow_call:
     inputs:
       version:
