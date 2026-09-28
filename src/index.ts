@@ -19,7 +19,7 @@ import {
 } from "./modules/atomone.gov.v1beta1/index.js";
 
 const config: PgIndexerConfig = {
-  startHeight: 1,
+  startHeight: Number(process.env.CHAIN_START_HEIGHT) || 1,
   batchSize: Number(process.env.QUEUE_SIZE) || 300,
   modules: [],
   rpcUrl: process.env.RPC_ENDPOINT || "https://rpc.atomone.network",
@@ -27,11 +27,11 @@ const config: PgIndexerConfig = {
   usePolling: process.env.USE_POLLING === "true" || false,
   processGenesis: process.env.PROCESS_GENESIS === "true" || false,
   enablePrometheus: true,
-  prometheusPort: 9090,
+  prometheusPort: Number(process.env.PROMETHEUS_PORT) || 9090,
   enableHealthcheck: true,
-  healthCheckPort: 8080,
+  healthCheckPort: Number(process.env.HEALTHCHECK_PORT) || 8080,
   minimal: false,
-  genesisPath: "./genesis.json",
+  genesisPath: process.env.GENESIS_PATH || "./genesis.json",
   dbConnectionString: process.env.PG_CONNECTION_STRING || "postgres://postgres:password@localhost:5432/atomone",
 };
 
@@ -50,9 +50,8 @@ const govModule = new GovModule(registry);
 const indexer = new PgIndexer(config, [blocksModule, authModule, bankModule, stakingModule, govModule]);
 
 indexer.indexer.on("fatal-error", (error) => {
+  // PgIndexer stops the engine and exits the process once this listener has run
   console.error("Fatal error in indexer:", error);
-  console.trace();
-  process.exit(1);
 });
 process.on("unhandledRejection", (reason, promise) => {
   console.log("Unhandled Rejection at:", promise, "reason:", reason);
