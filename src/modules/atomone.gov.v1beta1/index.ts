@@ -1,4 +1,3 @@
-import * as fs from "node:fs";
 import * as path from "node:path";
 import {
   fileURLToPath,
@@ -66,13 +65,10 @@ import {
   fromSeconds, toRfc3339WithNanoseconds,
 } from "@cosmjs/tendermint-rpc";
 import {
-  PgIndexer,
+  loadMigrations, PgIndexer,
 } from "@eclesia/basic-pg-indexer";
 import {
-  EcleciaIndexer, RPC_TIMEOUT_MS, Types,
-} from "@eclesia/indexer-engine";
-import {
-  Utils,
+  EclesiaIndexer, RPC_TIMEOUT_MS, RPCError, Types, Utils,
 } from "@eclesia/indexer-engine";
 import {
   JSONStringify,
@@ -129,6 +125,13 @@ export const getProposalContent = (
     return content;
   }
 };
+/**
+ * True when the chain answered an ABCI query with a non-zero code (the engine reports these as
+ * an RPCError carrying the code in its message), as opposed to the RPC being unreachable.
+ */
+const isChainSideAbciError = (e: unknown): boolean =>
+  e instanceof RPCError && /failed with code \d+/.test(e.message);
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const consolidateEvents = (type: string, events: any[]) => {
   return {
@@ -138,7 +141,7 @@ const consolidateEvents = (type: string, events: any[]) => {
   };
 };
 export class GovModule implements Types.IndexingModule {
-  indexer!: EcleciaIndexer;
+  indexer!: EclesiaIndexer;
 
   private pgIndexer!: PgIndexer;
 
@@ -146,7 +149,8 @@ export class GovModule implements Types.IndexingModule {
 
   public name: string = "atomone.gov.v1beta1";
 
-  public depends: string[] = [];
+  // Tables reference blocks, accounts and validators
+  public depends: string[] = ["blocks-full", "cosmos.auth.v1beta1", "cosmos.staking.v1beta1"];
 
   public provides: string[] = ["atomone.gov.v1beta1"];
 
@@ -154,28 +158,9 @@ export class GovModule implements Types.IndexingModule {
     this.registry = registry;
   }
 
+  /** Applies the module's numbered migrations from ./sql (001_initial.sql creates gov_params) */
   async setup() {
-    await this.pgIndexer.beginTransaction();
-    const client = this.pgIndexer.getInstance();
-    const exists = await client.query(
-      "SELECT EXISTS ( SELECT FROM pg_tables WHERE  schemaname = 'public' AND tablename  = 'gov_params')",
-    );
-    if (!exists.rows[0].exists) {
-      this.indexer.log.warn("Database not configured");
-      const base = fs.readFileSync(__dirname + "/./sql/module.sql").toString();
-      try {
-        await client.query(base);
-        this.indexer.log.info("DB has been set up");
-        await this.pgIndexer.endTransaction(true);
-      }
-      catch (e) {
-        await this.pgIndexer.endTransaction(false);
-        throw new Error("" + e);
-      }
-    }
-    else {
-      await this.pgIndexer.endTransaction(true);
-    }
+    await this.pgIndexer.applyMigrations(this.name, loadMigrations(path.join(__dirname, "sql")), "gov_params");
   }
 
   init(pgIndexer: PgIndexer): void {
@@ -424,46 +409,47 @@ export class GovModule implements Types.IndexingModule {
         x => x.type == "min_deposit_change" || x.type == "min_initial_deposit_change",
       );
       if (deposit_events.length > 0) await this.queryAndSaveParams(event.height ?? 0);
-      prop_events.forEach((x) => {
+      for (const x of prop_events) {
         const type = x.type;
         if (Utils.decodeAttr(x.attributes[0].key) == "proposal_id") {
           const proposalId = Utils.decodeAttr(x.attributes[0].value);
           if (Utils.decodeAttr(x.attributes[1].key) == "proposal_result") {
             const res = Utils.decodeAttr(x.attributes[1].value);
             if (type == "inactive_proposal" && res == "proposal_dropped") {
-              this.deleteProposal(BigInt(proposalId));
+              await this.deleteProposal(BigInt(proposalId));
             }
             if (type == "active_proposal" && res == "proposal_passed") {
               if (event.height) {
-                this.updatePoolAndStatus(BigInt(proposalId), event.height);
+                await this.updatePoolAndStatus(BigInt(proposalId), event.height);
               }
-              this.updateProposalStatus(
+              await this.updateProposalStatus(
                 BigInt(proposalId),
                 ProposalStatus.PROPOSAL_STATUS_PASSED,
               );
             }
             if (type == "active_proposal" && res == "proposal_rejected") {
               if (event.height) {
-                this.updatePoolAndStatus(BigInt(proposalId), event.height);
+                await this.updatePoolAndStatus(BigInt(proposalId), event.height);
               }
-              this.updateProposalStatus(
+              await this.updateProposalStatus(
                 BigInt(proposalId),
                 ProposalStatus.PROPOSAL_STATUS_REJECTED,
               );
             }
             if (type == "active_proposal" && res == "proposal_failed") {
               if (event.height) {
-                this.updatePoolAndStatus(BigInt(proposalId), event.height);
+                await this.updatePoolAndStatus(BigInt(proposalId), event.height);
               }
-              this.updateProposalStatus(
+              await this.updateProposalStatus(
                 BigInt(proposalId),
                 ProposalStatus.PROPOSAL_STATUS_FAILED,
               );
             }
           }
         }
-      });
+      }
     });
+    
     this.indexer.on("periodic/small", async (event) => {
       const db = this.pgIndexer.getInstance();
       await this.queryAndSaveParams(event.height ?? 0);
@@ -477,19 +463,30 @@ export class GovModule implements Types.IndexingModule {
             proposalId: BigInt(proposals.rows[i].id),
           });
           const tally = QueryTallyResultRequest.encode(q).finish();
-          const abciTimeout = new Promise<Uint8Array>((_, reject) => {
-            setTimeout(() => {
-              reject(new Error("ABCI call timed out"));
-            }, RPC_TIMEOUT_MS);
-          });
-          const tallyq = await Promise.race([
-            this.indexer.callABCI(
-              "/atomone.gov.v1beta1.Query/TallyResult",
-              tally,
-              event.height,
-            ),
-            abciTimeout,
-          ]);
+          let tallyq: Uint8Array;
+          try {
+            tallyq = await Utils.withTimeout(
+              this.indexer.callABCI(
+                "/atomone.gov.v1beta1.Query/TallyResult",
+                tally,
+                event.height,
+              ),
+              RPC_TIMEOUT_MS,
+              new Error("ABCI call timed out"),
+            );
+          }
+          catch (e) {
+            console.log(e);
+            // The tally snapshot is best effort. A node that answers the query with an error
+            // (the AtomOne tally query panics for heights inside proposal 1's voting period)
+            // cannot be retried into success, so record the gap and move on; a transport
+            // failure still fails the block so the engine reconnects.
+            if (isChainSideAbciError(e)) {
+              this.indexer.log.warn("Skipping tally snapshot for proposal " + proposals.rows[i].id + " at height " + event.height + ": " + (e as Error).message);
+              continue;
+            }
+            throw e;
+          }
 
           const tallyresult = QueryTallyResultResponse.decode(tallyq).tally;
           if (tallyresult) {
@@ -498,6 +495,7 @@ export class GovModule implements Types.IndexingModule {
         }
       }
     });
+    
     this.indexer.on("genesis/value/app_state.gov", async (event) => {
       const db = this.pgIndexer.getInstance();
       await db.query("INSERT INTO gov_params(params) VALUES($1)", [
@@ -513,21 +511,18 @@ export class GovModule implements Types.IndexingModule {
     });
     const paramsreq = QueryParamsRequest.encode(q).finish();
 
-    this.indexer.callABCI("/atomone.gov.v1.Query/Params", paramsreq).then(
-      async (paramsq) => {
-        const params = QueryParamsResponse.decode(paramsq).params;
-        if (params) {
-          const db = this.pgIndexer.getInstance();
-          await db.query("UPDATE gov_params SET params=$1, height=$2", [
-            JSON.parse(JSON.stringify(params, (key, value) =>
-              typeof value === "bigint" ? value.toString() : value,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            )) as any,
-            height,
-          ]);
-        }
-      },
-    );
+    const paramsq = await this.indexer.callABCI("/atomone.gov.v1.Query/Params", paramsreq);
+    const params = QueryParamsResponse.decode(paramsq).params;
+    if (params) {
+      const db = this.pgIndexer.getInstance();
+      await db.query("UPDATE gov_params SET params=$1, height=$2", [
+        JSON.parse(JSON.stringify(params, (key, value) =>
+          typeof value === "bigint" ? value.toString() : value,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        )) as any,
+        height,
+      ]);
+    }
   }
 
   async saveProposal(
@@ -664,14 +659,11 @@ export class GovModule implements Types.IndexingModule {
     });
     const poolreq = QueryPoolRequest.encode(q).finish();
 
-    this.indexer.callABCI("/cosmos.staking.v1beta1.Query/Pool", poolreq, height).then(
-      async (poolq) => {
-        const pool = QueryPoolResponse.decode(poolq).pool;
-        if (pool) {
-          await this.savePoolSnapshot(proposalId, pool, height);
-        }
-      },
-    );
+    const poolq = await this.indexer.callABCI("/cosmos.staking.v1beta1.Query/Pool", poolreq, height);
+    const pool = QueryPoolResponse.decode(poolq).pool;
+    if (pool) {
+      await this.savePoolSnapshot(proposalId, pool, height);
+    }
   }
 
   async savePoolSnapshot(
