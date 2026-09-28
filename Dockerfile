@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Use production node environment by default.
 # ENV NODE_ENV production
@@ -18,13 +18,13 @@ COPY . .
 # into this layer.
 RUN --mount=type=cache,target=/root/.npm \
     --mount=type=cache,id=pnpm,target=/pnpm/store \
-    CI=1 npm install -g pnpm typescript && \
+    CI=1 npm install -g pnpm@$(node -p "require('./package.json').packageManager.split('@')[1]") typescript && \
     CI=1 pnpm install && \
     pnpm build
 
 
 # Final image
-FROM node:22-alpine
+FROM node:24-alpine
 
 ENV LOG_LEVEL=debug
 ENV CHAIN_PREFIX=atone

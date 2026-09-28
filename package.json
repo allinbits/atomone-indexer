@@ -16,6 +16,9 @@
   "bin": {
     "ts-indexer": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
