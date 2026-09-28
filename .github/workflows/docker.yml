@@ -6,6 +6,15 @@ on:
       - "main"
     tags:
       - "v*"
+  # Called by the Release workflow once a version has been tagged, so the image
+  # carries that version: a tag pushed with GITHUB_TOKEN starts no workflow.
+  workflow_call:
+    inputs:
+      version:
+        description: Version to tag the image with, alongside latest
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -33,6 +42,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=semver,pattern=v{{version}}
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
 
       - name: Build and push
         uses: docker/build-push-action@v5

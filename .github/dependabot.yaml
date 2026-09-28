@@ -1,0 +1,53 @@
+version: 2
+updates:
+  # GitHub Actions updates
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    groups:
+      actions:
+        patterns:
+          - '*'
+
+  # Base image updates for the container this service ships as
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+
+  # Dependency updates
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # ignore all patch upgrades
+      - dependency-name: '*'
+        update-types: ['version-update:semver-patch']
+      # typescript-eslint does not support TypeScript 7 yet ("typescript-eslint
+      # does not support TS 7.0"), so a major TypeScript bump fails `pnpm lint`
+      # and, because these updates are grouped, blocks everything grouped with
+      # it. Drop this once typescript-eslint supports TS 7.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    pull-request-branch-name:
+      separator: '-'
+    groups:
+      eclesia:
+        patterns:
+          - '@eclesia/*'
+      eslint:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+      types:
+        patterns:
+          - '@types/*'
+      everything-else:
+        patterns:
+          - '*'

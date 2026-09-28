@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      version: ${{ steps.released.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          # Fetch the full history so changesets/changelog-github can resolve PR/commit metadata.
+          fetch-depth: 0
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install modules
+        run: pnpm install --frozen-lockfile
+
+      - name: Create Release Pull Request or tag the release
+        id: changesets
+        uses: changesets/action@v2
+        with:
+          # Opens/updates a "Version Packages" PR while changesets are pending.
+          # When that PR is merged, the publish script tags the release; this
+          # package is not published to npm, it ships as a container image.
+          version-script: pnpm version:packages
+          publish-script: pnpm release
+          commit-message: 'chore: version packages'
+          pr-title: 'chore: version packages'
+
+      - name: Read the released version
+        id: released
+        if: steps.changesets.outputs.published == 'true'
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+  # A tag pushed with GITHUB_TOKEN does not start a workflow of its own, so the
+  # release drives the image build directly instead of relying on the tag.
+  docker:
+    name: Docker image
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker.yml
+    with:
+      version: ${{ needs.release.outputs.version }}
