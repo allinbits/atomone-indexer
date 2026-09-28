@@ -185,8 +185,8 @@ importers:
         specifier: ^2.16.5
         version: 2.16.5
       '@eclesia/indexer-engine':
-        specifier: ^2.16.5
-        version: 2.16.5
+        specifier: ^3.0.0
+        version: 3.0.0
       bignumber.js:
         specifier: ^11.1.5
         version: 11.1.5
@@ -423,6 +423,10 @@ packages:
 
   '@eclesia/indexer-engine@2.16.5':
     resolution: {integrity: sha512-Ao7CXhVo5VGKGOkgB8nb+7AhnANp45oWzImIN3NCiByY3AXpXh9S14Ey7wyFlyNcK2/TpeftBTVVIQKHswfdeg==}
+    engines: {node: '>=20'}
+
+  '@eclesia/indexer-engine@3.0.0':
+    resolution: {integrity: sha512-KylFH99ZtXII4VnqTB5Q4xfxGkqfhtpRNY2GS30xO47ZW9exZ528W38naaT9oxlkUWiP4dgwmpBKN84cKRqnow==}
     engines: {node: '>=20'}
 
   '@eslint-community/eslint-utils@4.10.1':
@@ -1036,6 +1040,9 @@ packages:
 
   dataloader@2.2.3:
     resolution: {integrity: sha512-y2krtASINtPFS1rSDjacrFgn1dcUuoREVabwlOGOe4SdxenREqwjwjElAdwvbGM7kgZz9a3KVicWR7vcz8rnzA==}
+
+  dayjs@1.11.23:
+    resolution: {integrity: sha512-QDTCU0M0MxR3hQfnlDJfwekQiaanm1ubOD231u73WBckQ/fsamwRLiE2GBz6D3a/xF1NgfiDLJjXBa1hYOYTtQ==}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -1678,8 +1685,17 @@ packages:
   stack-trace@0.0.10:
     resolution: {integrity: sha512-KGzahc7puUKkzyMt+IqAep+TVNbKP+k2Lmwhub39m1AsTSkaDutx56aDCo+HLDzf/D26BIHTJWNiTG1KAJiQCg==}
 
+  stream-chain@2.2.5:
+    resolution: {integrity: sha512-1TJmBx6aSWqZ4tx7aTpBDXK0/e2hhcNSTV8+CbFJtDjbb+I1mZ8lHit0Grw9GRT+6JbIrrDd8esncgBi8aBXGA==}
+
+  stream-chain@3.6.3:
+    resolution: {integrity: sha512-JZuELdHUuiZL4Olcr4EllGUvj9VKEaDkGHA6QAP5SruD0bgrr8TwtNXwRfH+fCncysEII7HhWll1+aOwvHYyRw==}
+
   stream-chain@4.2.6:
     resolution: {integrity: sha512-1zeJ8CrtJfmiba26ui8jXkq/xLRFvhzkdH02D5QLO9Cnovgeb28IJxg88DdraWnjnkbOol/++uIAybJbJhk7ig==}
+
+  stream-json@1.9.1:
+    resolution: {integrity: sha512-uWkjJ+2Nt/LO9Z/JyKZbMusL8Dkh97uUBTv3AJQ74y07lVahLY4eEFsPsE97pxYBwr8nnjMAIch5eqI0gPShyw==}
 
   stream-json@3.7.0:
     resolution: {integrity: sha512-rCSBdcBP/bPk6T8QFcxAj1MSzAuc5i49cYW6IE7sYObNEPccBJIUiL6fU9c9BWt40aJK0siVynLX7lWaW8alXw==}
@@ -1824,6 +1840,10 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  uuid@13.0.2:
+    resolution: {integrity: sha512-vzi9uRZ926x4XV73S/4qQaTwPXM2JBj6/6lI/byHH1jOpCzb0zDbfytgA9LcN/hzb2l7WQSQnxITOVx5un/wGw==}
+    hasBin: true
 
   validate-npm-package-name@5.0.1:
     resolution: {integrity: sha512-OljLrQ9SQdOUqTaQxqL5dEfZWrXExyyWsozYlAWFawPVNuD83igl7uJD2RTkNMbniIYgt8l81eCJGIdQF7avLQ==}
@@ -2263,6 +2283,22 @@ snapshots:
       prom-client: 15.1.3
       stream-chain: 4.2.6
       stream-json: 3.7.0
+      winston: 3.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@eclesia/indexer-engine@3.0.0':
+    dependencies:
+      '@cosmjs/tendermint-rpc': 0.36.2
+      bech32: 2.0.0
+      cosmjs-types: 0.10.1
+      dayjs: 1.11.23
+      fastify: 5.12.5
+      prom-client: 15.1.3
+      stream-chain: 3.6.3
+      stream-json: 1.9.1
+      uuid: 13.0.2
       winston: 3.19.0
     transitivePeerDependencies:
       - bufferutil
@@ -2781,6 +2817,8 @@ snapshots:
       which: 2.0.2
 
   dataloader@2.2.3: {}
+
+  dayjs@1.11.23: {}
 
   debug@4.4.3:
     dependencies:
@@ -3388,7 +3426,15 @@ snapshots:
 
   stack-trace@0.0.10: {}
 
+  stream-chain@2.2.5: {}
+
+  stream-chain@3.6.3: {}
+
   stream-chain@4.2.6: {}
+
+  stream-json@1.9.1:
+    dependencies:
+      stream-chain: 2.2.5
 
   stream-json@3.7.0:
     dependencies:
@@ -3512,6 +3558,8 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  uuid@13.0.2: {}
 
   validate-npm-package-name@5.0.1: {}
 
