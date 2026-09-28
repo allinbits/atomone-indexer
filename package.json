@@ -7,7 +7,11 @@
     "build": "tsc --noEmit && tsdown && pnpm postbuild",
     "postbuild": "copyfiles -u 1 \"src/**/*.sql\" dist",
     "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix"
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "version:packages": "changeset version",
+    "release": "changeset git-tag"
   },
   "bin": {
     "ts-indexer": "./dist/index.js"
@@ -27,7 +31,10 @@
     "json-with-bigint": "^3.5.12",
     "pg": "^8.23.0"
   },
+  "packageManager": "pnpm@12.4.2",
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@arethetypeswrong/core": "^0.18.5",
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",

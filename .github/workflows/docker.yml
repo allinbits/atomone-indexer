@@ -2,10 +2,20 @@ name: Build and Push Docker image
 
 on:
   push:
-    branches:
-      - "main"
     tags:
       - "v*"
+  workflow_dispatch:
+  # The Release workflow calls this on every push to main: directly on a push
+  # trigger as well would build the same commit twice, and a tag pushed with
+  # GITHUB_TOKEN starts no workflow of its own, so the release passes the
+  # version it just tagged.
+  workflow_call:
+    inputs:
+      version:
+        description: Version to tag the image with, alongside latest
+        type: string
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -33,6 +43,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=semver,pattern=v{{version}}
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
 
       - name: Build and push
         uses: docker/build-push-action@v5

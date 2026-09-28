@@ -449,7 +449,7 @@ export class GovModule implements Types.IndexingModule {
         }
       }
     });
-    
+
     this.indexer.on("periodic/small", async (event) => {
       const db = this.pgIndexer.getInstance();
       await this.queryAndSaveParams(event.height ?? 0);
@@ -495,7 +495,7 @@ export class GovModule implements Types.IndexingModule {
         }
       }
     });
-    
+
     this.indexer.on("genesis/value/app_state.gov", async (event) => {
       const db = this.pgIndexer.getInstance();
       await db.query("INSERT INTO gov_params(params) VALUES($1)", [

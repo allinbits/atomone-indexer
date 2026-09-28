@@ -1,4 +1,7 @@
-packages: []
+# Changesets resolves its package list from these globs, so the root package
+# has to be listed or `changeset version` reports it as "not in the workspace".
+packages:
+  - "."
 onlyBuiltDependencies:
   - protobufjs
 minimumReleaseAgeExclude:
