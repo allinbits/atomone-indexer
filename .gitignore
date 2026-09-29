@@ -1,3 +1,6 @@
 node_modules/
 dist/
 genesis.json
+
+# Release notes written by scripts/tag-release.mjs
+RELEASE_NOTES.md
