@@ -18,8 +18,8 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      published: ${{ steps.changesets.outputs.published }}
-      version: ${{ steps.released.outputs.version }}
+      released: ${{ steps.release.outputs.released }}
+      version: ${{ steps.release.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -39,26 +39,40 @@ jobs:
       - name: Install modules
         run: pnpm install --frozen-lockfile
 
-      - name: Create Release Pull Request or tag the release
+      - name: Create Release Pull Request
         id: changesets
         uses: changesets/action@v2
         with:
           # Opens/updates a "Version Packages" PR while changesets are pending.
-          # When that PR is merged, the publish script tags the release; this
-          # package is not published to npm, it ships as a container image.
+          # No publish-script on purpose: this package is not published to npm,
+          # it ships as a container image, and the tag changesets would push is
+          # named after the package (`@eclesia/atomone-indexer@<version>`),
+          # because the pnpm-workspace.yaml this repo needs puts changesets in
+          # workspace mode. The next step tags `v<version>` instead.
           version-script: pnpm version:packages
-          publish-script: pnpm release
           commit-message: 'chore: version packages'
           pr-title: 'chore: version packages'
 
-      - name: Read the released version
-        id: released
-        if: steps.changesets.outputs.published == 'true'
-        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      # Runs unless a release is still pending, and is a no-op when the current
+      # version is already tagged, so an ordinary push to main does nothing.
+      - name: Tag the release
+        id: release
+        if: steps.changesets.outputs.has-changesets != 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          pnpm run release
+
+      - name: Create the GitHub release
+        if: steps.release.outputs.released == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: gh release create "$TAG" --title "$TAG" --notes-file RELEASE_NOTES.md
 
   # The single entry point for image builds, so a commit is never built twice.
   # On an ordinary push the image is tagged latest; on a release commit it also
-  # carries the version, which a tag-triggered build could not do because a tag
+  # carries v<version>, which a tag-triggered build could not do because a tag
   # pushed with GITHUB_TOKEN starts no workflow.
   docker:
     name: Docker image
