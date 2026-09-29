@@ -29,7 +29,7 @@
     "@cosmjs/tendermint-rpc": "^0.39.0",
     "@eclesia/basic-pg-indexer": "^2.16.5",
     "@eclesia/core-modules-pg": "^2.16.5",
-    "@eclesia/indexer-engine": "^2.16.5",
+    "@eclesia/indexer-engine": "^3.0.0",
     "bignumber.js": "^11.1.5",
     "json-with-bigint": "^3.5.12",
     "pg": "^8.23.0"
