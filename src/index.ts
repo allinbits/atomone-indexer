@@ -17,6 +17,9 @@ import {
 import {
   GovModule,
 } from "./modules/atomone.gov.v1beta1/index.js";
+import {
+  SupplyModule,
+} from "./modules/supply/index.js";
 
 const config: PgIndexerConfig = {
   startHeight: Number(process.env.CHAIN_START_HEIGHT) || 1,
@@ -47,7 +50,9 @@ const authModule = new AuthModule(registry);
 const bankModule = new BankModule(registry);
 const stakingModule = new StakingModule(registry);
 const govModule = new GovModule(registry);
-const indexer = new PgIndexer(config, [blocksModule, authModule, bankModule, stakingModule, govModule]);
+
+const supplyModule = new SupplyModule(registry);
+const indexer = new PgIndexer(config, [blocksModule, authModule, bankModule, stakingModule, govModule, supplyModule]);
 
 indexer.indexer.on("fatal-error", (error) => {
   // PgIndexer stops the engine and exits the process once this listener has run
