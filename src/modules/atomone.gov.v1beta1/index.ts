@@ -77,36 +77,36 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export type Events = {
-  "/atomone.gov.v1beta1.MsgSubmitProposal": {
-    value: Types.TxResult<Uint8Array>
-  }
+/**
+ * Proto packages the gov messages are accepted under. AtomOne v4 serves x/gov under the
+ * upstream `cosmos.gov.*` type URLs as well as the legacy `atomone.gov.*` ones; the messages
+ * are wire-identical, so both are decoded with the atomone.gov types.
+ */
+const GOV_PACKAGES = ["atomone.gov", "cosmos.gov"] as const;
 
-  "/atomone.gov.v1.MsgSubmitProposal": {
+type GovMsgName
+  = | "v1beta1.MsgSubmitProposal" | "v1.MsgSubmitProposal"
+    | "v1beta1.MsgDeposit" | "v1.MsgDeposit"
+    | "v1beta1.MsgVote" | "v1.MsgVote"
+    | "v1beta1.MsgVoteWeighted" | "v1.MsgVoteWeighted";
+
+type GovMsgEvents = {
+  [K in `/${typeof GOV_PACKAGES[number]}.${GovMsgName}`]: {
     value: Types.TxResult<Uint8Array>
   }
-  "/atomone.gov.v1beta1.MsgVote": {
-    value: Types.TxResult<Uint8Array>
-  }
-  "/atomone.gov.v1beta1.MsgDeposit": {
-    value: Types.TxResult<Uint8Array>
-  }
-  "/atomone.gov.v1beta1.MsgVoteWeighted": {
-    value: Types.TxResult<Uint8Array>
-  }
-  "/atomone.gov.v1.MsgVote": {
-    value: Types.TxResult<Uint8Array>
-  }
-  "/atomone.gov.v1.MsgDeposit": {
-    value: Types.TxResult<Uint8Array>
-  }
-  "/atomone.gov.v1.MsgVoteWeighted": {
-    value: Types.TxResult<Uint8Array>
-  }
+};
+
+export type Events = GovMsgEvents & {
   "genesis/value/app_state.gov": {
     value: unknown
   }
 };
+
+type GovMsgEvent = Types.WithHeightAndUUID<GovMsgEvents>[`/atomone.gov.${GovMsgName}`];
+
+/** Maps `/cosmos.gov.<rest>` to `/atomone.gov.<rest>`; other type URLs are returned as-is */
+const toAtomoneGovTypeUrl = (typeUrl: string): string =>
+  typeUrl.startsWith("/cosmos.gov.") ? "/atomone.gov." + typeUrl.slice("/cosmos.gov.".length) : typeUrl;
 export const getProposalContent = (
   content: Required<MsgSubmitProposal>["content"],
 ): TextProposal | ParameterChangeProposal | SoftwareUpgradeProposal | Any => {
@@ -158,6 +158,13 @@ export class GovModule implements Types.IndexingModule {
     this.registry = registry;
   }
 
+  /** Registers a gov message handler under every package in GOV_PACKAGES */
+  private onGovMsg(msg: GovMsgName, handler: (event: GovMsgEvent) => Promise<void>) {
+    for (const pkg of GOV_PACKAGES) {
+      this.indexer.on(`/${pkg}.${msg}`, handler);
+    }
+  }
+
   /** Applies the module's numbered migrations from ./sql (001_initial.sql creates gov_params) */
   async setup() {
     await this.pgIndexer.applyMigrations(this.name, loadMigrations(path.join(__dirname, "sql")), "gov_params");
@@ -171,7 +178,7 @@ export class GovModule implements Types.IndexingModule {
       registryMap.set(this.registry[i][0], this.registry[i][1]);
     }
 
-    this.indexer.on("/atomone.gov.v1beta1.MsgSubmitProposal", async (event) => {
+    this.onGovMsg("v1beta1.MsgSubmitProposal", async (event) => {
       this.indexer.log.verbose(
         "Value passed to gov indexing module: " + event.value,
       );
@@ -216,7 +223,7 @@ export class GovModule implements Types.IndexingModule {
       }
     });
 
-    this.indexer.on("/atomone.gov.v1.MsgSubmitProposal", async (event) => {
+    this.onGovMsg("v1.MsgSubmitProposal", async (event) => {
       this.indexer.log.verbose(
         "Value passed to gov indexing module: " + event.value,
       );
@@ -225,7 +232,7 @@ export class GovModule implements Types.IndexingModule {
       const content = prop.messages.length > 0
         ? JSONStringify(
           prop.messages.map((x) => {
-            const msgtype = registryMap.get(x.typeUrl);
+            const msgtype = registryMap.get(x.typeUrl) ?? registryMap.get(toAtomoneGovTypeUrl(x.typeUrl));
             if (msgtype) {
               const msg = msgtype?.decode(x.value);
               msg["@type"] = x.typeUrl;
@@ -272,7 +279,7 @@ export class GovModule implements Types.IndexingModule {
         throw new Error("Invalid Proposal ID in event log:" + proposalId);
       }
     });
-    this.indexer.on("/atomone.gov.v1beta1.MsgDeposit", async (event) => {
+    this.onGovMsg("v1beta1.MsgDeposit", async (event) => {
       this.indexer.log.verbose(
         "Value passed to gov indexing module: " + event.value,
       );
@@ -308,7 +315,7 @@ export class GovModule implements Types.IndexingModule {
       }
     });
 
-    this.indexer.on("/atomone.gov.v1.MsgDeposit", async (event) => {
+    this.onGovMsg("v1.MsgDeposit", async (event) => {
       this.indexer.log.verbose(
         "Value passed to gov indexing module: " + event.value,
       );
@@ -344,7 +351,7 @@ export class GovModule implements Types.IndexingModule {
         }
       }
     });
-    this.indexer.on("/atomone.gov.v1beta1.MsgVote", async (event) => {
+    this.onGovMsg("v1beta1.MsgVote", async (event) => {
       this.indexer.log.verbose("Value passed to gov indexing module: " + event.value);
       const vote = MsgVote.decode(event.value.tx);
       await this.saveVotes(
@@ -361,7 +368,7 @@ export class GovModule implements Types.IndexingModule {
       );
     });
 
-    this.indexer.on("/atomone.gov.v1.MsgVote", async (event) => {
+    this.onGovMsg("v1.MsgVote", async (event) => {
       this.indexer.log.verbose("Value passed to gov indexing module: " + event.value);
       const vote = MsgVoteV1.decode(event.value.tx);
       await this.saveVotes(
@@ -377,7 +384,7 @@ export class GovModule implements Types.IndexingModule {
         event.height,
       );
     });
-    this.indexer.on("/atomone.gov.v1beta1.MsgVoteWeighted", async (event) => {
+    this.onGovMsg("v1beta1.MsgVoteWeighted", async (event) => {
       this.indexer.log.verbose("Value passed to gov indexing module: " + event.value);
       const vote = MsgVoteWeighted.decode(event.value.tx);
       await this.saveVotes(
@@ -388,7 +395,7 @@ export class GovModule implements Types.IndexingModule {
         event.height,
       );
     });
-    this.indexer.on("/atomone.gov.v1.MsgVoteWeighted", async (event) => {
+    this.onGovMsg("v1.MsgVoteWeighted", async (event) => {
       this.indexer.log.verbose("Value passed to gov indexing module: " + event.value);
       const vote = MsgVoteWeightedV1.decode(event.value.tx);
       await this.saveVotes(
