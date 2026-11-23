@@ -40,7 +40,7 @@
     "@changesets/cli": "^3.0.3",
     "@arethetypeswrong/core": "^0.18.5",
     "@eslint/js": "^10.0.1",
-    "@stylistic/eslint-plugin": "^5.10.0",
+    "@stylistic/eslint-plugin": "^6.0.1",
     "@types/json-bigint": "^1.0.4",
     "@types/node": "^26.6.3",
     "@types/pg": "^8.23.1",
